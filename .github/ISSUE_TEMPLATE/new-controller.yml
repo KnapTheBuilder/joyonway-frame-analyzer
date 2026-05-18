@@ -1,0 +1,70 @@
+name: New controller model
+description: Help add support for a new Joyonway/Mesda/Balboa controller
+title: "[New controller] "
+labels: ["new-controller", "needs-capture"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping expand support. A 30-60 second raw capture is the most valuable thing you can attach.
+
+  - type: input
+    id: model
+    attributes:
+      label: Controller model
+      description: Exact model reference printed on the controller (e.g. P25B85, P20B29-2032 V183)
+      placeholder: "P25B85"
+    validations:
+      required: true
+
+  - type: input
+    id: keypad
+    attributes:
+      label: Keypad model
+      description: e.g. PB554, PB555, PB563PLUS
+      placeholder: "PB555"
+
+  - type: input
+    id: bridge
+    attributes:
+      label: RS485 bridge used
+      description: W610, USR-W610, ESP32+MAX485, USB-RS485, other
+      placeholder: "W610"
+
+  - type: textarea
+    id: capture_method
+    attributes:
+      label: How did you capture
+      description: Command line, software used, baudrate, duration
+      placeholder: |
+        timeout 60 nc 192.168.1.34 8899 | xxd > capture.txt
+        baudrate 38400 8N1
+        60 seconds, changed setpoint twice during capture
+    validations:
+      required: true
+
+  - type: textarea
+    id: tool_output
+    attributes:
+      label: What the analyzer says
+      description: Auto-detected format, frame count, top commands. Paste the stats line.
+      placeholder: |
+        Bytes 13247, Frames 621, Broadcasts 45, Top CMD B4:45, A5:223, 2E:264
+
+  - type: textarea
+    id: capture_file
+    attributes:
+      label: Capture file
+      description: Drag and drop your capture.txt file here, or paste sample frames in hex
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: I confirm
+      options:
+        - label: My capture does not contain any sensitive network information
+          required: true
+        - label: I agree to share this capture under the project's MIT license
+          required: true

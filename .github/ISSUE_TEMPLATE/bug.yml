@@ -1,0 +1,31 @@
+name: Bug report
+description: Report a bug in the frame analyzer
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened
+      description: Describe what you did and what went wrong
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+      placeholder: "Firefox 125 on Ubuntu 24.04"
+
+  - type: textarea
+    id: capture
+    attributes:
+      label: Sample capture that triggers the bug
+      description: If applicable, paste a small hex sample that reproduces the issue
