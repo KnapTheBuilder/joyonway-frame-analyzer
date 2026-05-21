@@ -1,30 +1,52 @@
-# OS
-.DS_Store
-Thumbs.db
-.directory
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# IDE
+# Environnements virtuels
+venv/
+env/
+ENV/
+.venv/
+
+# Editeurs et IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.DS_Store
+Thumbs.db
 
-# Backups
-*.bak
-*.backup
-
-# Logs
-*.log
-
-# Local user captures (avoid leaking)
-captures/
+# Captures de test (souvent volumineuses et privees)
+*.bin
 *.cap
-*.dump
+*.pcap
+captures/
+samples/*.bin
 
-# Node / Python (if added later)
-node_modules/
-__pycache__/
-*.py[cod]
-venv/
-.env
+# Logs et sorties de debug
+*.log
+debug_output/
+
+# Fichiers de test temporaires
+test_output/
+temp/
+tmp/

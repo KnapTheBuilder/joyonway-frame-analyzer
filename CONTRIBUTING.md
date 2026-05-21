@@ -1,67 +1,89 @@
-# Contributing to Joyonway Frame Analyzer
+# Guide de contribution
 
-Thanks for considering a contribution. This project is small and community-driven.
+Merci de votre interet pour contribuer au projet **Joyonway Frame Analyzer**.
 
-## Quick paths
+Cet outil est ne d'un effort collaboratif sur le forum Home Assistant Community pour reverser le protocole RS485 des controleurs de spa Joyonway. Toute contribution qui aide a etendre la couverture des modeles ou ameliorer le decodage est la bienvenue.
 
-- **Have a new controller (P25B85, P20B29, etc.)?** Open an issue with the `new-controller` template and attach a capture.
-- **Decoded a byte mapping?** Open an issue with the `capture-analysis` template.
-- **Found a bug?** Open an issue with the `bug` template.
-- **Want to propose code changes?** Read the section below.
+## Types de contributions recherchees
 
-## Code contributions
+### 1. Captures RS485 partagees
 
-This is a single-file HTML app on purpose: easy to fork, easy to host locally, no build step. Please keep contributions in that spirit.
+Le travail le plus utile est de partager des captures binaires `.bin` faites avec `nc 192.168.1.34 8899 > capture.bin` dans des conditions documentees :
 
-### Workflow
+- Action precise realisee pendant la capture (changement consigne, activation lumiere, etc.)
+- Modele exact du controleur (P23B32 V1 ou V2, annee de fabrication)
+- Date de la capture
+- Etat initial des equipements
 
-1. Fork the repo
-2. Create a branch: `git checkout -b feature/your-feature`
-3. Make your changes in `docs/index.html`
-4. Test locally: open `docs/index.html` directly in your browser
-5. Open a Pull Request describing what you changed and why
+Format ideal : ouvrir une **Issue** avec le label `capture` et joindre le fichier `.bin`.
 
-### Code style
+### 2. Decodage de nouvelles trames
 
-- No build step, no bundler, no framework — pure HTML/CSS/JS
-- ES2017+ is fine (async/await, const/let, template literals)
-- 2-space indentation
-- No external runtime dependencies
-- All UI text in English
+Si vous avez identifie ce que fait une trame inconnue (par exemple les bits du byte 17 du broadcast 0xB4, ou la trame de commande consigne en conditions reelles), proposez une **Pull Request** sur le fichier `decoder.py`.
 
-### Adding a new controller preset
+### 3. Support de nouveaux modeles
 
-Edit the `FORMATS` object near the top of the script section in `docs/index.html`:
+Le decodeur actuel cible le P23B32 V2 (2019). Si vous possedez un P25B37, P25B85, P20B29, P69B133 ou autre, contribuez :
 
-```javascript
-yourModel: {
-  name: 'YourModel / Vendor',
-  delimiter: 0xXX,
-  delimiterStart: 0xXX,
-  delimiterEnd: 0xXX,
-  useUnescape: true,
-  maxFrameLen: 256,
-  srcOffset: 1,
-  cmdOffset: 4,
-  info: 'Description, source of decoding, credits',
-},
+- Captures binaires de votre modele
+- Comparaison avec les trames documentees
+- Adaptation eventuelle du parsing
+
+### 4. Amelioration de la documentation
+
+- Correction de fautes
+- Ajout d'exemples concrets
+- Schemas de cablage USR-W610 -> bus RS485 du spa
+- Photos de connecteurs
+
+## Workflow Git
+
+1. Fork du depot
+2. Branche dediee pour votre contribution : `git checkout -b feature/decode-bits-byte17`
+3. Commits clairs et atomiques avec messages explicites
+4. Test du code modifie sur au moins une capture reelle
+5. Pull Request avec description detaillee de ce qui a ete teste
+
+## Conventions de code
+
+- Python 3.8+
+- Pas de dependances externes (que stdlib)
+- Type hints sur les fonctions publiques
+- Docstrings en francais ou anglais (selon votre prefence, soyez coherent dans un meme fichier)
+- Indentation 4 espaces (PEP 8)
+- Pas de print() de debug laisses en place
+
+## Tests
+
+Avant de proposer une PR, validez votre code sur une capture reelle :
+
+```
+python analyzer.py votre_capture.bin
 ```
 
-Include at least:
-- A reference capture file in the PR description
-- Credits to the person(s) who decoded the format
-- At least 50 frames captured to confirm the format is stable
+Verifiez que :
+- Le script tourne sans erreur
+- Le decodage du broadcast 0xB4 retourne des valeurs coherentes (temperature plausible 20-40 degC)
+- Les trames rares sont correctement identifiees
 
-## Review process
+## Communication
 
-I (KnapTheBuilder) review all PRs personally. Expect a few days of latency since this is a side project.
+- **Issues GitHub** : bugs, demandes de fonctionnalites, partage de captures
+- **Pull Requests** : ameliorations de code ou documentation
+- **Forum Home Assistant Community** : discussion generale sur le protocole Joyonway et integration HA - https://community.home-assistant.io/t/joyonway-spa-control/582344
 
-## What I won't accept
+## Code de conduite
 
-- PRs that add runtime dependencies (jQuery, React, build tools, npm)
-- PRs that fundamentally change the architecture without prior discussion
-- PRs that strip credits from existing contributors
+Comportement respectueux attendu. Les attaques personnelles, le harcelement, ou tout comportement toxique ne sont pas toleres. Ce projet est un effort collaboratif beneficiant a la communaute.
 
-## Code of conduct
+## Licence
 
-Be kind. Reverse engineering is a niche topic, beginners are welcome. Snark and gatekeeping are not.
+En contribuant, vous acceptez que vos contributions soient publiees sous la meme licence MIT que le projet.
+
+## Remerciements aux contributeurs initiaux
+
+- **Gaet78** pour l'integration HACS originelle Joyonway et le decodage du P69B133
+- **KDy** pour l'analyse comparative des trames broadcast et la mesure oscilloscope (validation du baudrate 38400)
+- **Neuro** pour les travaux ESP32+MAX485 sur le P23B32 V2
+
+Ce projet n'aurait pas existe sans le fil d'echanges de la communaute Home Assistant.

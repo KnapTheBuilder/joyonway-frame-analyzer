@@ -1,90 +1,150 @@
-# Joyonway Frame Analyzer
+# Joyonway P23B32 - Frame Analyzer
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Live app](https://img.shields.io/badge/Live%20app-online-brightgreen)](https://knapthebuilder.github.io/joyonway-frame-analyzer/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
-An in-browser tool to analyze raw RS485 captures from Joyonway / Mesda / Balboa
-spa controllers. Auto-detects frame format, extracts frames, performs byte-level
-diff between states, and helps reverse engineer the binary protocol.
+Outil d'analyse des captures RS485 du controleur de spa **Joyonway P23B32** via pont USR-W610.
 
-**Try it live: https://knapthebuilder.github.io/joyonway-frame-analyzer/**
+Decode les trames binaires capturees pour identifier :
 
-No data leaves your browser. Everything runs client-side in pure HTML/JS.
+- Les broadcasts d'etat (temperature eau, consigne thermostat, etats equipements)
+- Les commandes envoyees par l'app Joyonway (lumiere, pompes, bulleur, filtration)
+- Les trames rares (potentielles nouvelles commandes a identifier)
 
-## Screenshots
+## Compatibilite
 
-### Empty state — ready to receive a capture
+Teste sur **Joyonway P23B32 V2 (2019)**. Les autres modeles (P20B29, P25B37, P25B85, P69B133) ont un protocole different mais cet outil peut servir de base d'analyse.
 
-![Empty state](docs/screenshots/01-empty-state.jpg)
+## Pre-requis
 
-### After loading a capture (621 frames extracted, 45 broadcasts identified)
+- Python 3.8 ou superieur
+- Aucune dependance externe (que des modules standards : `re`, `collections`, `pathlib`)
 
-![Capture loaded](docs/screenshots/02-capture-loaded.jpg)
-
-## What it does
-
-- Parses xxd hex dumps or raw hex captures from any source (W610 TCP bridge, ESP32+MAX485, USB-RS485 adapter, etc.)
-- Auto-detects the frame format among known controller presets
-- Handles the Joyonway pseudo-escape mechanism (1B XX sequences)
-- Lists all frames with source, destination, command type
-- Mark one frame as reference and diff any other frame against it, byte by byte
-- Aggregates statistics per (Src, CMD) group to show which byte positions vary
-
-## Supported controllers
-
-| Model | Status | Frame format |
-|-------|--------|--------------|
-| P23B32 / Mesda | Validated | [1A][dst][src][len][...][CRC][1D] with pseudo-escape |
-| P69B133 | Reference | [7E][len][F9 BF cmd ...][CRC][7E] |
-| Custom | Always available | User-defined delimiter and offsets |
-
-More presets will be added as the community contributes captures of other models. See [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## How to capture RS485 traffic from your spa
-
-If your spa uses a W610 WiFi-to-RS485 bridge:
-
-1. Stop any active integration or app talking to the bridge (only one TCP client at a time)
-2. From any Linux machine on the same network, run:
+## Installation
 
 ```bash
-timeout 60 nc YOUR_W610_IP 8899 | xxd > capture.txt
+git clone https://github.com/KnapTheBuilder/joyonway-frame-analyzer.git
+cd joyonway-frame-analyzer
 ```
 
-3. During the capture, change spa state on the keypad (setpoint, pump on/off, light, filtration)
-4. Open the tool in your browser and drop the capture.txt file in the upload zone
+Ou telecharger le ZIP depuis l'onglet **Releases** et l'extraire.
 
-## How to use the tool
+## Utilisation
 
-1. **Format selection**: leave it on Auto-detect first. If 0 frames are found, switch to Scan all delimiters mode
-2. **Upload your capture** (drag-drop or click)
-3. **Read the stats**: how many frames, how many broadcasts, top commands
-4. **Click a frame** to see its byte structure
-5. **Mark as reference** then click another frame to see the differences
-6. **Byte Position Statistics** groups frames by (Src, CMD) and shows which bytes vary
+### Etape 1 - Capture d'un fichier RS485
 
-## How to contribute
+Sur le serveur Home Assistant ou tout systeme qui a `nc` (netcat) :
 
-This is a community tool for community reverse engineering. The best contributions are:
+```bash
+nc 192.168.1.34 8899 > capture.bin
+```
 
-- **New controller captures**: open an issue with the `new-controller` template, attach a capture
-- **Decoded byte mappings**: open an issue with the `capture-analysis` template
-- **Bug reports**: open an issue with the `bug` template
-- **Code improvements**: pull requests welcome, see [CONTRIBUTING.md](CONTRIBUTING.md)
+Laisser tourner 5 a 15 minutes pour capter suffisamment de broadcasts. Ctrl+C pour arreter.
 
-## Credits
+### Etape 2 - Analyse complete
 
-This tool exists thanks to the reverse engineering work of:
+```bash
+python analyzer.py capture.bin
+```
 
-- **KDy** — RS485 framing analysis with oscilloscope, pseudo-escape mechanism, full Python decoder (HA forum post #90)
-- **c0mpleX** — Broadcast frame samples for All Off, Filtration, Pumps, Bubbler, Light, Heater (HA forum post #83)
-- **Gaet78** — Original P69B133 HACS integration
-- **Yannickt26, Buecky, Neuro** and others on the [Home Assistant community thread](https://community.home-assistant.io/t/joyonway-spa-control/582344)
+Affiche un rapport detaille avec :
 
-## License
+- Statistiques globales (nombre de trames, tailles, types)
+- Top 10 des trames les plus frequentes (broadcasts repetitifs)
+- Trames rares (1-5 occurrences, potentielles commandes)
+- Decodage du premier et dernier broadcast 0xB4 (temperature, consigne)
+- Suggestions pour les prochaines captures
 
-MIT — see [LICENSE](LICENSE)
+### Scripts cibles
 
-## Related projects
+**Evolution temperature dans le temps :**
 
-- [ha-joyonway-p23b32](https://github.com/KnapTheBuilder/ha-joyonway-p23b32) — Home Assistant integration for the P23B32 controller (uses the protocol decoded with this tool)
+```bash
+python extract_temp.py capture.bin
+```
+
+**Recherche de commandes (utile pour decoder de nouvelles trames) :**
+
+```bash
+python find_commands.py capture.bin
+```
+
+Workflow recommande pour identifier une nouvelle commande :
+1. Lancer une capture nc en continu
+2. Pendant la capture, declencher UNE action via l'app Joyonway (ex. changer la consigne)
+3. Arreter la capture
+4. Lancer `find_commands.py` - la trame de commande apparait dans les rares
+
+## Protocole decode
+
+### Structure d'une trame
+
+| Element | Valeur |
+|---------|--------|
+| Delimiteur debut | `0x1A` |
+| Type (byte 5) | Voir tableau ci-dessous |
+| Payload | Variable |
+| Delimiteur fin | `0x1D` |
+
+### Types de trames identifies
+
+| Type | Hex | Role |
+|------|-----|------|
+| Commande equipement | `0xA1` | Lumiere, pompes, bulleur |
+| Filtration / planning | `0xA4` | Mise a jour planning |
+| Heartbeat / arret | `0xAA` | Etat repos ou arret total |
+| Broadcast etat global | `0xB4` | Temperature, consigne, etats live |
+| Polling capteurs | `0xA5` | Interrogation capteurs |
+| Polling actionneurs | `0x2E` | Interrogation actionneurs |
+
+### Broadcast 0xB4 - decodage byte par byte
+
+Validation faite sur capture reelle 2026-05-13 :
+
+| Byte | Hex observe | Decimal | Decodage |
+|------|-------------|---------|----------|
+| 9 | `0x5c` | 92 | Temperature eau en Fahrenheit (92F = 33.3C) |
+| 14 | `0x21` | 33 | **Temperature eau en Celsius DIRECT** |
+| 16 | `0x5f` | 95 | Consigne thermostat en Fahrenheit (95F = 35C) |
+| 17 | `0x80` | 128 | Flags etats equipements (bitmask) |
+| 60-67 | varie | - | Compteur cyclique et CRC (non valide cote spa) |
+
+## Decouvertes communautaires
+
+Plusieurs trames de notre integration HA sont en realite des **miroirs des broadcasts d'etat** du controleur. Le P23B32 ne valide pas le CRC, ce qui permet de rejouer ces trames avec les flags equipement modifies.
+
+Exemple : la trame `CMD_ALL_OFF` actuellement utilisee est identique au broadcast `0xAA` capture 90 fois en 5 minutes en etat repos. C'est donc un **heartbeat de repos**, pas une vraie commande d'arret.
+
+## Limitations connues
+
+- Decodage des bits individuels du byte 17 (etats equipements) pas encore valide
+- Trame de commande consigne thermostat pas encore capturee dans son format exact
+- Aucune validation CRC (le controleur ne la fait pas non plus)
+
+## Documentation complementaire
+
+- [Guide de contribution](CONTRIBUTING.md)
+- [docs/PROTOCOLE.md](docs/PROTOCOLE.md) - Specification protocole detaillee
+- [docs/EXEMPLES.md](docs/EXEMPLES.md) - Exemples de captures commentees
+
+## Liens utiles
+
+- **Integration Home Assistant officielle** : https://github.com/KnapTheBuilder/ha-joyonway-p23b32
+- **Thread Home Assistant Community** : https://community.home-assistant.io/t/joyonway-spa-control/582344
+- **Documentation pont USR-W610** : https://www.pusr.com/products/wifi-rs485-converter-w610.html
+
+## Remerciements
+
+Ce projet n'aurait pas existe sans la communaute Home Assistant :
+
+- **Gaet78** pour l'integration HACS originelle Joyonway et le decodage P69B133
+- **KDy** pour l'analyse comparative des trames broadcast et la mesure oscilloscope confirmant le baudrate 38400 (26 us/bit)
+- **Neuro** pour le travail ESP32+MAX485 sur le P23B32 V2
+
+## Licence
+
+[MIT](LICENSE)
+
+## Auteur
+
+[KnapTheBuilder](https://github.com/KnapTheBuilder) - 2026

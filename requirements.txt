@@ -1,0 +1,4 @@
+# Joyonway Frame Analyzer
+#
+# Aucune dependance externe : que des modules standard Python 3.8+
+# (re, collections, pathlib, sys)

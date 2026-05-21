@@ -1,0 +1,37 @@
+name: Python Lint
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
+
+      - name: Lint avec flake8
+        run: |
+          # Erreurs critiques (E9, F63, F7, F82) bloquantes
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Warnings non-bloquants
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics
+
+      - name: Verifie que les scripts s'importent sans erreur
+        run: |
+          python -c "import decoder; print('decoder.py OK')"
+          python -c "import analyzer; print('analyzer.py OK')"
+          python -c "import extract_temp; print('extract_temp.py OK')"
+          python -c "import find_commands; print('find_commands.py OK')"
