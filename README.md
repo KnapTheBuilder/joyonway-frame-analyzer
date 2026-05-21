@@ -1,109 +1,122 @@
-# Joyonway Frame Analyzer
+# Joyonway Frame Analyzer v2
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![GitHub Pages](https://img.shields.io/badge/demo-live-brightgreen)](https://knapthebuilder.github.io/joyonway-frame-analyzer/)
-[![Profiles](https://img.shields.io/badge/profiles-2-blue)](profiles/)
+[![Live App](https://img.shields.io/badge/demo-live-brightgreen)](https://knapthebuilder.github.io/joyonway-frame-analyzer/)
 
-**RS485 frame analyzer for Joyonway spa controllers - 100% local, multi-model, community-driven**
+**Multi-model RS485 frame analyzer for Joyonway spa controllers - 100% local, community-driven**
 
-**Analyseur de trames RS485 pour controleurs de spa Joyonway - 100% local, multi-modeles, communautaire**
+**Analyseur multi-modeles de trames RS485 pour controleurs de spa Joyonway - 100% local, communautaire**
 
-[Live app](https://knapthebuilder.github.io/joyonway-frame-analyzer/) | [Discussion forum](https://community.home-assistant.io/t/joyonway-spa-control/582344)
+[Live app](https://knapthebuilder.github.io/joyonway-frame-analyzer/) | [Discussion thread](https://community.home-assistant.io/t/joyonway-spa-control/582344)
 
 ---
 
 # English
 
-## What is this?
+## What changed in v2
 
-A browser-based tool that decodes RS485 binary captures from Joyonway spa controllers. Drag a `.bin` file, instantly see what frames mean: water temperature, setpoint, equipment states, commands sent by the official app.
+This release integrates the community findings posted on the Home Assistant forum:
 
-Works 100% in your browser. **No data sent anywhere**. No backend, no server, no tracking.
+- **Correct pseudo-escape table** (from @KDy post #90)
+- **Setpoint command frame** (from @Yannickt26 post #110)
+- **Unified profile** for P23B32 V2, P20B29 and P25B85 (same protocol)
+- **Separate profile** for P69B133 (different protocol family by @gaet78)
 
-## Why?
+## What this tool does
 
-Joyonway controllers communicate via RS485 with proprietary protocols that differ across models:
-- **P23B32 V2** uses delimiter `0x1A...0x1D` at 38400 baud
-- **P69B133** uses delimiter `0x7E...0x7E` at 115200 baud (Balboa-like)
-- Other models likely use other variants
+A browser-based analyzer that decodes RS485 binary captures from Joyonway spa controllers. Drop a `.bin` file, see what frames mean: water temperature, setpoint, equipment states, commands.
 
-This tool gives you the keys to:
-1. Identify which protocol your controller uses
-2. Decode captured frames (temperature, setpoint, equipment states)
-3. Find new commands by capturing user actions
-4. Contribute your findings back to enable Home Assistant integration
+100% in your browser. **No data sent anywhere**.
+
+## Supported models
+
+| Model | Protocol family | Status |
+|-------|----------------|--------|
+| Joyonway P23B32 V2 (2019) | 1A/1D @ 38400 baud | Validated |
+| Joyonway P20B29-2032 V183 | 1A/1D @ 38400 baud | Validated |
+| Joyonway P25B85 | 1A/1D @ 38400 baud | Validated |
+| Joyonway P69B133 | 7E/7E @ 115200 baud | Reference (use @gaet78 integration) |
+
+The three first models share the EXACT same protocol after applying the KDy unescape table. They all map to the same JSON profile.
 
 ## Quick start
 
-### 1. Capture frames from your spa
-
-On your Home Assistant server (or any system with `nc`):
+### 1. Capture frames
 
 ```bash
 nc YOUR_W610_IP 8899 > capture.bin
 ```
 
-Let it run 5-15 minutes, then Ctrl+C.
+Let it run 5-15 minutes while changing spa state (setpoint, pump, light).
 
 ### 2. Open the analyzer
 
-Go to: **[knapthebuilder.github.io/joyonway-frame-analyzer/](https://knapthebuilder.github.io/joyonway-frame-analyzer/)**
+[knapthebuilder.github.io/joyonway-frame-analyzer/](https://knapthebuilder.github.io/joyonway-frame-analyzer/)
 
 ### 3. Drop your capture
 
-Drag-drop the `.bin` file. Instant analysis.
+Drag-drop the `.bin` file. Instant analysis with proper unescape.
 
-### 4. Contribute (optional)
+## The unescape table (KDy post #90)
 
-If your model is not yet supported, click **Contribute this capture** to share it with the community.
+For 1A/1D family controllers, pseudo-escape sequences in raw RS485 data must be resolved BEFORE reading byte positions:
 
-## Supported models
+```
+0x1B 0x11  ->  0x1A
+0x1B 0x13  ->  0x1C
+0x1B 0x14  ->  0x1D
+0x1B 0x15  ->  0x1E
+0x1B 0x0B  ->  0x1B
+```
 
-| Model | Protocol | Status |
-|-------|----------|--------|
-| Joyonway P23B32 V2 (2019) | `0x1A`/`0x1D` @ 38400 baud | Validated |
-| Joyonway P69B133 (Balboa-like) | `0x7E`/`0x7E` @ 115200 baud | Reference |
-| Custom | User-defined | Available |
+Without this transformation, byte positions shift after the first 0x1B in the frame and decoding is incorrect.
 
-[Browse all profiles](profiles/) | [Add a new model](profiles/README.md#adding-a-new-model)
+## B4 broadcast decoding (post-unescape, KDy parser)
 
-## Features
+| Byte | Field | Notes |
+|------|-------|-------|
+| 9 | Water temperature | Fahrenheit |
+| 12 | Pump flags | bit 0x02 filtering, bit 0x04 massage |
+| 14 | Heating state | 0x50 circulation, 0x54 heating, 0x40 cooldown, 0x20 off |
+| 14 | Ozonator (P25B85) | 0xC1 = active |
+| 16 | Setpoint | Fahrenheit |
+| 17 | Light flags | bit 0x01 light |
+| 53-58 | Date/time | YYYY MM DD HH MM SS |
 
-- Browser-based, zero install, zero dependencies
-- Multi-model support via JSON profiles (community-extensible)
-- Auto-detection of protocol family
-- Pseudo-escape decoding (`1B XX`)
-- Custom mode (define your own delimiter and offsets)
-- Scan-all-delimiters mode (brute force discovery)
-- Frame-by-frame diff
-- Statistics by (Source, Command)
-- Reference frame marking
-- Hex dump and xxd format support
-- Mobile-friendly responsive UI
-- Optional GitHub Issue contribution from the app
+## Setpoint command frame
 
-## Related projects
+To change setpoint, send an A1 command frame with byte 15 = setpoint in Fahrenheit:
 
-- **Home Assistant integration** (P23B32 V2): [github.com/KnapTheBuilder/ha-joyonway-p23b32](https://github.com/KnapTheBuilder/ha-joyonway-p23b32)
-- **Home Assistant integration** (Balboa-like): [github.com/gaet78/homeassistant-joyonway-hacs-](https://github.com/gaet78/homeassistant-joyonway-hacs-)
+```
+1a 01 30 10 3c a1 00 a1 00 00 80 80 02 04 00 [degF] 00 96 20 [CRC4] 1d
+```
 
-## Contributing
+Conversion: `byte_15 = round((celsius * 9 / 5) + 32)`
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+Examples (validated by @Yannickt26):
+- 38C = 100F = 0x64
+- 10C = 50F = 0x32
 
-Quick paths:
-- Share a capture: [open an issue](https://github.com/KnapTheBuilder/joyonway-frame-analyzer/issues/new?template=capture_share.md)
-- Add a new model: see [profiles/README.md](profiles/README.md)
-- Report a bug: [open an issue](https://github.com/KnapTheBuilder/joyonway-frame-analyzer/issues/new?template=bug_report.md)
+**Important**: CRC bytes (positions 17-20) change with the setpoint value. Capture each value from your panel for replay safety, OR adopt the formula above with the warning that CRC must be captured or computed.
+
+## Prerequisites for manual control
+
+Per the official PB555 panel manual (cited by @KDy):
+
+- **Manual heater control**: requires activating "Thermostat manuel" in the PB555 panel menu
+- **Manual ozone control**: requires activating manual mode in the PB555 panel menu
+
+Without these activations, no software command can pilot the corresponding equipment.
 
 ## Credits
 
-This project exists thanks to the Home Assistant Joyonway community:
+This work exists thanks to:
 
-- **[@gaet78](https://github.com/gaet78)** - Original HACS integration, P69B133 reverse engineering
-- **@KDy** - Oscilloscope baudrate validation, pseudo-escape decoding
+- **@KDy** - Complete unescape table (post #90), B4 parser, oscilloscope baudrate validation, PB555 manual research
+- **@Yannickt26** - P20B29 captures (post #109), setpoint command frames (post #110)
+- **@gaet78** - Original Joyonway HACS integration (for P69B133), reverse engineering pioneer
 - **@Neuro** - ESP32+MAX485 prototype on P23B32 V2
-- **@Yannickt26** - Capture contributions
+- **@old-man** - P25B85 confirmation
 - **All community members** of the [JoyOnWay Spa Control](https://community.home-assistant.io/t/joyonway-spa-control/582344) thread
 
 ## License
@@ -114,98 +127,60 @@ This project exists thanks to the Home Assistant Joyonway community:
 
 # Francais
 
-## Qu'est-ce que c'est ?
+## Nouveautes v2
 
-Un outil dans le navigateur qui decode les captures binaires RS485 des controleurs de spa Joyonway. Tu glisses un fichier `.bin`, tu vois instantanement ce que disent les trames : temperature de l'eau, consigne, etats des equipements, commandes envoyees par l'app officielle.
+Cette version integre les decouvertes communautaires partagees sur le forum Home Assistant :
 
-100% dans ton navigateur. **Aucune donnee envoyee**. Pas de backend, pas de serveur, pas de tracking.
+- **Table d'unescape correcte** (@KDy post #90)
+- **Trame commande consigne** (@Yannickt26 post #110)
+- **Profil unifie** pour P23B32 V2, P20B29 et P25B85 (meme protocole)
+- **Profil separe** pour P69B133 (famille differente par @gaet78)
 
-## Pourquoi ?
+## Modeles supportes
 
-Les controleurs Joyonway communiquent en RS485 avec des protocoles proprietaires qui different selon les modeles :
-- **P23B32 V2** utilise les delimiteurs `0x1A...0x1D` a 38400 bauds
-- **P69B133** utilise les delimiteurs `0x7E...0x7E` a 115200 bauds (type Balboa)
-- D'autres modeles utilisent probablement d'autres variantes
+| Modele | Famille protocole | Statut |
+|--------|-------------------|--------|
+| Joyonway P23B32 V2 (2019) | 1A/1D @ 38400 bauds | Valide |
+| Joyonway P20B29-2032 V183 | 1A/1D @ 38400 bauds | Valide |
+| Joyonway P25B85 | 1A/1D @ 38400 bauds | Valide |
+| Joyonway P69B133 | 7E/7E @ 115200 bauds | Reference (utiliser integration @gaet78) |
 
-Cet outil te donne les cles pour :
-1. Identifier quel protocole utilise ton controleur
-2. Decoder les trames capturees (temperature, consigne, etats)
-3. Trouver de nouvelles commandes en capturant les actions utilisateur
-4. Contribuer tes decouvertes pour ameliorer l'integration Home Assistant
+Les trois premiers modeles partagent EXACTEMENT le meme protocole apres application de la table d'unescape KDy. Ils utilisent tous le meme profil JSON.
 
 ## Demarrage rapide
 
-### 1. Capturer les trames de ton spa
-
-Sur ton serveur Home Assistant (ou tout systeme avec `nc`) :
+### 1. Capturer
 
 ```bash
 nc IP_DE_TON_W610 8899 > capture.bin
 ```
 
-Laisse tourner 5 a 15 minutes, puis Ctrl+C.
+5-15 minutes en changeant l'etat du spa (consigne, pompe, lumiere).
 
 ### 2. Ouvrir l'analyseur
 
-Va sur : **[knapthebuilder.github.io/joyonway-frame-analyzer/](https://knapthebuilder.github.io/joyonway-frame-analyzer/)**
+[knapthebuilder.github.io/joyonway-frame-analyzer/](https://knapthebuilder.github.io/joyonway-frame-analyzer/)
 
-### 3. Deposer ta capture
+### 3. Deposer la capture
 
-Glisse-depose le fichier `.bin`. Analyse instantanee.
+Glisse-depose le fichier `.bin`. Analyse instantanee avec unescape correct.
 
-### 4. Contribuer (optionnel)
+## Pre-requis controle manuel
 
-Si ton modele n'est pas encore supporte, clique sur **Contribuer cette capture** pour la partager avec la communaute.
+D'apres le manuel officiel du panneau PB555 (cite par @KDy) :
 
-## Modeles supportes
+- **Chauffage manuel** : activer "Thermostat manuel" dans le menu du panneau PB555
+- **Ozone manuel** : activer le mode manuel dans le menu du panneau PB555
 
-| Modele | Protocole | Statut |
-|--------|-----------|--------|
-| Joyonway P23B32 V2 (2019) | `0x1A`/`0x1D` a 38400 bauds | Valide |
-| Joyonway P69B133 (type Balboa) | `0x7E`/`0x7E` a 115200 bauds | Reference |
-| Custom | Personnalise par l'utilisateur | Disponible |
-
-[Voir tous les profils](profiles/) | [Ajouter un nouveau modele](profiles/README.md#adding-a-new-model)
-
-## Fonctionnalites
-
-- Dans le navigateur, zero installation, zero dependance
-- Multi-modeles via profils JSON (extensible par la communaute)
-- Auto-detection du protocole
-- Decodage pseudo-escape (`1B XX`)
-- Mode Custom (definir tes propres delimiteurs et offsets)
-- Mode Scan-all-delimiters (decouverte par force brute)
-- Diff trame par trame
-- Statistiques par (Source, Commande)
-- Marquage de trame de reference
-- Support hex dump et format xxd
-- Interface responsive mobile
-- Contribution optionnelle via GitHub Issue depuis l'app
-
-## Projets lies
-
-- **Integration Home Assistant** (P23B32 V2) : [github.com/KnapTheBuilder/ha-joyonway-p23b32](https://github.com/KnapTheBuilder/ha-joyonway-p23b32)
-- **Integration Home Assistant** (type Balboa) : [github.com/gaet78/homeassistant-joyonway-hacs-](https://github.com/gaet78/homeassistant-joyonway-hacs-)
-
-## Contribuer
-
-Voir [CONTRIBUTING.md](CONTRIBUTING.md).
-
-Raccourcis :
-- Partager une capture : [ouvrir une issue](https://github.com/KnapTheBuilder/joyonway-frame-analyzer/issues/new?template=capture_share.md)
-- Ajouter un nouveau modele : voir [profiles/README.md](profiles/README.md)
-- Signaler un bug : [ouvrir une issue](https://github.com/KnapTheBuilder/joyonway-frame-analyzer/issues/new?template=bug_report.md)
+Sans ces activations, aucune commande logicielle ne peut piloter ces equipements.
 
 ## Remerciements
 
-Ce projet existe grace a la communaute Joyonway de Home Assistant :
+Ce travail existe grace a :
 
-- **[@gaet78](https://github.com/gaet78)** - Integration HACS originelle, reverse engineering P69B133
-- **@KDy** - Validation baudrate oscilloscope, decodage pseudo-escape
+- **@KDy** - Table d'unescape complete (post #90), parser B4, validation baudrate oscilloscope, recherche manuel PB555
+- **@Yannickt26** - Captures P20B29 (post #109), trames commande consigne (post #110)
+- **@gaet78** - Integration HACS Joyonway originelle (pour P69B133), pionnier du reverse engineering
 - **@Neuro** - Prototype ESP32+MAX485 sur P23B32 V2
-- **@Yannickt26** - Contributions de captures
-- **Tous les membres de la communaute** du thread [JoyOnWay Spa Control](https://community.home-assistant.io/t/joyonway-spa-control/582344)
-
-## Licence
-
-[MIT](LICENSE)
+- **@old-man** - Confirmation P25B85
+- **Tous les membres** du thread [JoyOnWay Spa Control](https://community.home-assistant.io/t/joyonway-spa-control/582344)

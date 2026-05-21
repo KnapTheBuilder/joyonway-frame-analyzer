@@ -1,55 +1,40 @@
 {
   "id": "_template",
-  "name": "TEMPLATE - Copy and rename this file to add a new model",
+  "name": "Template - copy and rename to your_model.json",
   "manufacturer": "Joyonway",
   "year": "YYYY",
   "status": "draft",
-  "contributors": ["YourGitHubUsername"],
+  "contributors": ["YourGitHubHandle"],
   "physical": {
     "baudrate": 38400,
     "data_bits": 8,
     "parity": "none",
     "stop_bits": 1,
-    "validation_method": "describe how you confirmed the baudrate"
+    "validation_method": "how you confirmed the baudrate"
   },
   "frame_format": {
     "delimiter_start": "0x??",
     "delimiter_end": "0x??",
     "pseudo_escape": false,
-    "crc_validation": false,
-    "type_byte_offset": 5,
-    "_comment": "Adjust offsets based on your captures"
+    "crc_validation_by_controller": false,
+    "type_byte_offset_post_unescape": 5
   },
-  "known_types": {
+  "known_types_post_unescape": {
     "0x??": {
-      "name": "Description of frame type",
-      "description": "Detailed role of this frame",
-      "typical_length": 0
+      "name": "Description",
+      "description": "What this frame type does"
     }
   },
-  "broadcast_fields": {
-    "type_byte": "0x??",
-    "fields": {
-      "temp_celsius": {
-        "byte": 0,
-        "type": "uint8",
-        "unit": "degC",
-        "description": "Water temperature in Celsius",
-        "validated": false
-      }
+  "broadcast_decoding_post_unescape": {
+    "byte_X": {
+      "field": "water_temperature_fahrenheit"
     }
   },
-  "command_frames": {
-    "EXAMPLE_LIGHT_ON": "1a01..."
-  },
-  "transmission": {
-    "method": "describe how commands are sent",
+  "command_frames_pre_unescape": {},
+  "transmission_method": {
+    "approach": "describe",
     "repeat_count": 1,
-    "interval_ms": 100,
-    "rationale": "why this method"
+    "interval_ms": 100
   },
-  "notes": [
-    "Add any specific findings here",
-    "Reference issues, threads, or related repos"
-  ]
+  "notes": ["Add findings here"]
 }

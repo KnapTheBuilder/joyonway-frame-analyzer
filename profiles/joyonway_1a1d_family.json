@@ -1,0 +1,238 @@
+{
+  "id": "joyonway_1a1d_family",
+  "name": "Joyonway 1A/1D family (P23B32 V2, P20B29, P25B85)",
+  "manufacturer": "Joyonway / Mesda",
+  "models_compatible": [
+    "Joyonway P23B32 V2 (2019)",
+    "Joyonway P20B29-2032 V183",
+    "Joyonway P25B85"
+  ],
+  "year": "2019+",
+  "status": "validated",
+  "contributors": [
+    "KDy (unescape table, B4 parser, oscilloscope baudrate validation)",
+    "Yannickt26 (P20B29 captures, setpoint frames 38C/10C)",
+    "KnapTheBuilder (P23B32 V2 captures, command frames replay validation, HA integration)",
+    "Neuro (ESP32+MAX485 prototype on P23B32 V2)",
+    "old-man (P25B85 confirmation)"
+  ],
+  "physical": {
+    "baudrate": 38400,
+    "data_bits": 8,
+    "parity": "none",
+    "stop_bits": 1,
+    "validation_method": "oscilloscope by KDy (26us/bit period)",
+    "w610_485_switch_time_ms_recommended": 10
+  },
+  "frame_format": {
+    "delimiter_start": "0x1A",
+    "delimiter_end": "0x1D",
+    "pseudo_escape": true,
+    "escape_marker": "0x1B",
+    "escape_rule_source": "KDy post #90 of community thread",
+    "escape_table": {
+      "0x1B 0x11": "0x1A",
+      "0x1B 0x13": "0x1C",
+      "0x1B 0x14": "0x1D",
+      "0x1B 0x15": "0x1E",
+      "0x1B 0x0B": "0x1B"
+    },
+    "crc_validation_by_controller": false,
+    "crc_replay_safe": true,
+    "type_byte_offset_post_unescape": 5
+  },
+  "addresses": {
+    "0x01": "Main controller / mainboard",
+    "0x10": "Control panel slot 1 (PB555)",
+    "0x11": "Control panel slot 2",
+    "0x12": "Control panel slot 3",
+    "0x13": "Control panel slot 4",
+    "0x20": "WiFi module slot 1",
+    "0x21": "WiFi module slot 2",
+    "0x30": "Active panel address (most common)",
+    "0xFF": "Broadcast"
+  },
+  "known_types_post_unescape": {
+    "0xA1": {
+      "name": "Equipment command",
+      "description": "Light, pumps, blower, setpoint (panel -> mainboard)",
+      "typical_length": 23,
+      "direction": "panel -> mainboard"
+    },
+    "0xA4": {
+      "name": "Filtration / planning",
+      "description": "Filtration schedule update"
+    },
+    "0xA5": {
+      "name": "Sensor polling",
+      "description": "Internal sensor polling (do NOT replay)"
+    },
+    "0xAA": {
+      "name": "Heartbeat",
+      "description": "Idle heartbeat (do NOT confuse with off command)"
+    },
+    "0xB4": {
+      "name": "Status broadcast",
+      "description": "Temperature, setpoint, equipment states, date/time",
+      "frequency_seconds_approx": 1
+    }
+  },
+  "broadcast_b4_decoding_post_unescape": {
+    "source": "KDy parser code from post #90",
+    "byte_9": {
+      "field": "water_temperature_fahrenheit",
+      "unit": "degF",
+      "conversion_to_celsius": "round((F - 32) * 5 / 9, 1)"
+    },
+    "byte_12": {
+      "field": "pump_state_bitmask",
+      "bits": {
+        "0x02": "filtration",
+        "0x04": "massage"
+      }
+    },
+    "byte_14": {
+      "field": "heating_state",
+      "values": {
+        "0x20": "off (or thermostat manual not activated)",
+        "0x40": "cooldown",
+        "0x50": "circulation",
+        "0x54": "heating",
+        "0xC1": "ozonator active (P25B85, KDy observation)"
+      }
+    },
+    "byte_16": {
+      "field": "setpoint_fahrenheit",
+      "unit": "degF",
+      "conversion_to_celsius": "round((F - 32) * 5 / 9, 1)",
+      "range": [60, 104]
+    },
+    "byte_17": {
+      "field": "light_and_extras_bitmask",
+      "bits": {
+        "0x01": "light"
+      }
+    },
+    "byte_27": {
+      "field": "filtration_confirmation",
+      "values": {
+        "0x02": "filtration active"
+      }
+    },
+    "byte_28": {
+      "field": "mode_byte",
+      "values": {
+        "0x20": "normal mode"
+      }
+    },
+    "bytes_53_to_58": {
+      "field": "datetime",
+      "format": "YYYY (2000+byte) MM DD HH MM SS",
+      "purpose": "controller clock"
+    }
+  },
+  "command_frames_pre_unescape": {
+    "common_prefix_panel_to_mainboard": "1a 01 30 10 3c a1 00 a1",
+    "LIGHT_ON": {
+      "hex": "1a0130103ca100a100004040020400008081edbaa01b141d",
+      "validated_by": ["KnapTheBuilder"],
+      "validated_on": ["P23B32 V2"]
+    },
+    "LIGHT_OFF": {
+      "hex": "1a0130103ca100a1000040400204000080805a20cdc11d",
+      "validated_by": ["KnapTheBuilder"],
+      "validated_on": ["P23B32 V2"]
+    },
+    "PUMP_LEFT_ON": {
+      "hex": "1a0130103ca100a10604000002040000008b3ee4131d",
+      "validated_by": ["KnapTheBuilder", "Yannickt26"],
+      "validated_on": ["P23B32 V2", "P20B29-2032 V183"]
+    },
+    "PUMP_LEFT_OFF": {
+      "hex": "1a0130103ca100a106000000020400000008bd10331d",
+      "validated_by": ["KnapTheBuilder", "Yannickt26"],
+      "validated_on": ["P23B32 V2", "P20B29-2032 V183"]
+    },
+    "PUMP_RIGHT_ON": {
+      "hex": "1a0130103ca100a118100000020400000040d12de01d",
+      "validated_by": ["KnapTheBuilder", "Yannickt26"],
+      "validated_on": ["P23B32 V2", "P20B29-2032 V183"]
+    },
+    "PUMP_RIGHT_OFF": {
+      "hex": "1a0130103ca100a11800000002040000004cdfff631d",
+      "validated_by": ["KnapTheBuilder", "Yannickt26"],
+      "validated_on": ["P23B32 V2", "P20B29-2032 V183"]
+    },
+    "BLOWER_ON": {
+      "hex": "1a0130103ca100a10000040402040000000f7f1b11761d",
+      "validated_by": ["KnapTheBuilder", "Yannickt26"],
+      "validated_on": ["P23B32 V2", "P20B29-2032 V183"]
+    },
+    "BLOWER_OFF": {
+      "hex": "1a0130103ca100a1000004000204000000fcc2864f1d",
+      "validated_by": ["KnapTheBuilder", "Yannickt26"],
+      "validated_on": ["P23B32 V2", "P20B29-2032 V183"]
+    },
+    "FILTRATION": {
+      "hex": "1a0130103ca400a1620500160017000600fc7954c61d",
+      "validated_by": ["KnapTheBuilder"],
+      "validated_on": ["P23B32 V2"]
+    },
+    "SETPOINT_38C_TEMPLATE": {
+      "hex": "1a0130103ca100a1000080800204006400962061e11d",
+      "validated_by": ["Yannickt26"],
+      "validated_on": ["P20B29-2032 V183"],
+      "decoded_celsius": 38,
+      "decoded_fahrenheit": 100,
+      "setpoint_byte_position": 15,
+      "note": "byte 15 (zero-indexed) = setpoint in Fahrenheit; CRC bytes 17-20 change with value"
+    },
+    "SETPOINT_10C_TEMPLATE": {
+      "hex": "1a0130103ca100a1000080800204003200342213 8e1d",
+      "validated_by": ["Yannickt26"],
+      "validated_on": ["P20B29-2032 V183"],
+      "decoded_celsius": 10,
+      "decoded_fahrenheit": 50,
+      "setpoint_byte_position": 15
+    }
+  },
+  "setpoint_command_formula": {
+    "description": "To build a custom setpoint command frame, compute Fahrenheit value, place at byte 15",
+    "formula_celsius_to_fahrenheit": "byte_15 = round((celsius * 9 / 5) + 32)",
+    "examples": {
+      "30C": "byte_15 = 0x56 (86F)",
+      "35C": "byte_15 = 0x5F (95F)",
+      "38C": "byte_15 = 0x64 (100F)",
+      "40C": "byte_15 = 0x68 (104F)"
+    },
+    "warning": "CRC at bytes 17-20 must be recomputed or captured per setpoint value. Replay-safe approach: capture each setpoint value from the panel and store the full frame."
+  },
+  "manual_thermostat_activation": {
+    "discovered_by": "KDy (post #111)",
+    "source": "PB555 control panel manual (French)",
+    "quote_fr": "Lorsque la fonction manuelle du thermostat est activee, une option de temperature constante sera ajoutee a la barre de menus, permettant a l'utilisateur d'activer manuellement le thermostat dans l'interface principale.",
+    "operational_impact": "Without this activation in the PB555 panel menu, no software command can pilot the heater manually. The integration will fail silently on heating commands if this is not done first."
+  },
+  "manual_ozone_activation": {
+    "discovered_by": "KDy",
+    "source": "PB555 control panel manual (French)",
+    "description": "Ozone disinfection has automatic AND manual modes. Manual mode requires activation in panel menu. When active, byte 14 of B4 broadcast = 0xC1.",
+    "applies_to": ["P25B85"]
+  },
+  "transmission_method": {
+    "approach": "replay command frames from panel address 0x30 to mainboard 0x01",
+    "repeat_count": 10,
+    "interval_ms": 500,
+    "rationale": "Bus shared with multiple devices (panels, WiFi modules), repetition improves reliability"
+  },
+  "important_notes": [
+    "Controller does NOT validate CRC, allowing replay of broadcast or captured frames as commands",
+    "CMD_ALL_OFF (0xAA type) is actually a heartbeat (captured 90x in 5min idle), not a real off command",
+    "P23B32 V2, P20B29 and P25B85 share IDENTICAL protocol byte positions AFTER applying KDy unescape table",
+    "Per KDy (post #113), without proper unescape, byte positions shift after the first 0x1B in the frame",
+    "Manual heater control requires PB555 menu activation (per official manual)"
+  ],
+  "community_thread": "https://community.home-assistant.io/t/joyonway-spa-control/582344",
+  "frame_analyzer": "https://knapthebuilder.github.io/joyonway-frame-analyzer/",
+  "ha_integration": "https://github.com/KnapTheBuilder/ha-joyonway-p23b32"
+}

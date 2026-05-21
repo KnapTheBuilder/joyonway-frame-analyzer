@@ -2,33 +2,49 @@
 
 ## v2.0.0 - 2026-05-21
 
-Architecture refactor: multi-model JSON profiles, community contribution workflow.
+Major correction release based on community findings.
+
+### Fixed
+
+- **Unescape function**: replaced simplistic "remove 0x1B, keep next byte" rule with the correct KDy table:
+  - `1B 11 -> 1A`
+  - `1B 13 -> 1C`
+  - `1B 14 -> 1D`
+  - `1B 15 -> 1E`
+  - `1B 0B -> 1B`
+- Without this fix, byte positions shifted after the first 0x1B in any frame, causing incorrect decoding of temperature, setpoint, and equipment flags.
 
 ### Added
 
-- `profiles/` directory with JSON-based model descriptions
-- Two initial profiles: `p23b32_v2.json` (validated), `p69b133.json` (reference)
-- `_template.json` for community contributions
-- Issue templates: bug, capture share, new model profile
-- GitHub Actions workflow for auto-deploy to GitHub Pages on push to main
-- GitHub Actions workflow for JSON profile validation on PR
-- Bilingual README (English / Francais)
-- Bilingual CONTRIBUTING (English / Francais)
-- `docs/PROFILES.md` complete guide for adding new models
+- `profiles/joyonway_1a1d_family.json` - Unified profile for P23B32 V2, P20B29 and P25B85 (same protocol confirmed)
+- `profiles/p69b133_balboa_like.json` - Reference profile for P69B133 (separate protocol)
+- `profiles/_template.json` - Template for new model contributions
+- `unescape.js` - Standalone JavaScript module with correct KDy table
+- B4 broadcast decoder (from KDy parser code, post #90):
+  - water temp byte 9 (Fahrenheit)
+  - setpoint byte 16 (Fahrenheit)
+  - heating state byte 14 (0x50/0x54/0x40/0xC1)
+  - pump flags byte 12 (filtering/massage bits)
+  - light flag byte 17 (bit 0x01)
+- Setpoint command frame template (from Yannickt26 post #110):
+  - Byte 15 of A1 command = setpoint in Fahrenheit
+  - Formula: `byte_15 = round((celsius * 9 / 5) + 32)`
 
 ### Changed
 
-- README restructured for clarity and dual-language support
-- Project structure now supports community model contributions without code changes
+- README now bilingual (English/Français), with full credits section
+- Profile schema enhanced with validation tracking per contributor and per model
 
-### Deprecated
+### Credits
 
-- Previous hard-coded FORMATS object in JavaScript (to be replaced by dynamic JSON loading in next minor version)
+This release integrates the work of:
+- **@KDy** (unescape table + B4 parser + PB555 manual research)
+- **@Yannickt26** (P20B29 captures + setpoint frames)
+- **@gaet78** (P69B133 protocol reference)
+- **@Neuro** (P23B32 V2 prototype)
+- **@old-man** (P25B85 confirmation)
 
-### Credits for this release
+### Source
 
-- @KnapTheBuilder - Architecture, profiles, docs
-- @gaet78 - P69B133 reference data
-- @KDy - P23B32 V2 oscilloscope validation
-- @Neuro - ESP32+MAX485 prototype data
-- @Yannickt26 - Community captures
+All findings come from the Home Assistant community thread:
+https://community.home-assistant.io/t/joyonway-spa-control/582344
