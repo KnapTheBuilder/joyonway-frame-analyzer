@@ -1,48 +1,41 @@
 ---
 name: Bug report
-about: Signaler un bug ou un comportement inattendu
+about: Report a bug or unexpected behavior / Signaler un bug
 title: '[BUG] '
 labels: bug
-assignees: ''
 ---
 
-## Description du bug
+## Description
 
-Description claire et concise du probleme rencontre.
+What is the problem? / Quel est le probleme ?
 
-## Comment reproduire
+## Steps to reproduce / Etapes pour reproduire
 
-Etapes pour reproduire le comportement :
+1. ...
+2. ...
+3. ...
 
-1. Lancer la commande `...`
-2. Sur la capture `...`
-3. Observer l'erreur `...`
+## Expected behavior / Comportement attendu
 
-## Comportement attendu
+...
 
-Ce qui aurait du se passer normalement.
+## Actual behavior / Comportement observe
 
-## Comportement observe
+...
 
-Ce qui s'est passe en realite (avec messages d'erreur si applicable).
+## Environment / Environnement
 
-## Environnement
+- Browser / Navigateur :
+- OS :
+- Spa model / Modele de spa :
+- Profile used / Profil utilise :
 
-- OS : (Windows 10/11, Linux Ubuntu, macOS, etc.)
-- Version Python : (sortie de `python --version`)
-- Modele Joyonway : (P23B32 V2 2019, autre)
-- Version du frame-analyzer : (commit hash ou date de telechargement)
+## Capture (if relevant)
 
-## Capture concernee
+Attach the capture file if possible / Joindre le fichier de capture si possible
 
-Si possible, joindre la capture binaire `.bin` qui declenche le bug (ou un extrait).
-
-## Logs et stacktrace
+## Console errors / Erreurs console
 
 ```
-Coller ici la sortie complete du script, y compris les messages d'erreur
+Paste browser console errors here
 ```
-
-## Contexte additionnel
-
-Toute autre information utile pour comprendre le contexte.

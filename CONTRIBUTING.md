@@ -1,89 +1,137 @@
-# Guide de contribution
+# Contributing / Contribuer
 
-Merci de votre interet pour contribuer au projet **Joyonway Frame Analyzer**.
+## English
 
-Cet outil est ne d'un effort collaboratif sur le forum Home Assistant Community pour reverser le protocole RS485 des controleurs de spa Joyonway. Toute contribution qui aide a etendre la couverture des modeles ou ameliorer le decodage est la bienvenue.
+Thanks for your interest. This project grows with community contributions.
 
-## Types de contributions recherchees
+### Types of contributions
 
-### 1. Captures RS485 partagees
+#### 1. Share an RS485 capture
 
-Le travail le plus utile est de partager des captures binaires `.bin` faites avec `nc 192.168.1.34 8899 > capture.bin` dans des conditions documentees :
+The most valuable contribution. Open an issue with the `capture_share` template and attach your `.bin` file with:
 
-- Action precise realisee pendant la capture (changement consigne, activation lumiere, etc.)
-- Modele exact du controleur (P23B32 V1 ou V2, annee de fabrication)
-- Date de la capture
-- Etat initial des equipements
+- Spa model (exact reference if possible)
+- Year of manufacture
+- Duration of capture
+- Actions performed during capture (timeline)
+- USR-W610 IP and configuration
 
-Format ideal : ouvrir une **Issue** avec le label `capture` et joindre le fichier `.bin`.
+#### 2. Add a new model profile
 
-### 2. Decodage de nouvelles trames
+If you have identified a new spa model's protocol, add a JSON profile in `profiles/`. See [profiles/README.md](profiles/README.md).
 
-Si vous avez identifie ce que fait une trame inconnue (par exemple les bits du byte 17 du broadcast 0xB4, ou la trame de commande consigne en conditions reelles), proposez une **Pull Request** sur le fichier `decoder.py`.
+#### 3. Improve decoder logic
 
-### 3. Support de nouveaux modeles
+PRs welcome for:
+- Better protocol auto-detection
+- New decode fields for existing profiles
+- UI improvements (responsive, accessibility, languages)
+- Performance on large captures
 
-Le decodeur actuel cible le P23B32 V2 (2019). Si vous possedez un P25B37, P25B85, P20B29, P69B133 ou autre, contribuez :
+#### 4. Translate
 
-- Captures binaires de votre modele
-- Comparaison avec les trames documentees
-- Adaptation eventuelle du parsing
+The UI is currently in English with some French strings. Translations to other languages are welcome via PR.
 
-### 4. Amelioration de la documentation
+### Workflow
 
-- Correction de fautes
-- Ajout d'exemples concrets
-- Schemas de cablage USR-W610 -> bus RS485 du spa
-- Photos de connecteurs
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/p25b85-profile`
+3. Make atomic commits with clear messages
+4. Test on real captures
+5. Open a Pull Request describing what you tested
 
-## Workflow Git
+### Code conventions
+
+- Vanilla JavaScript, no framework dependencies
+- No external CDN imports (must work offline)
+- Indentation: 2 spaces
+- Profile JSON: follow `_template.json` structure
+- Type hints in JSDoc where helpful
+
+### Testing
+
+Test your changes on:
+- Desktop browser (Chrome, Firefox, Safari)
+- Mobile browser (Safari iOS, Chrome Android)
+- Real captures from at least one model
+
+Validate JSON profiles:
+
+```bash
+python -m json.tool profiles/your_profile.json
+```
+
+### Code of conduct
+
+Respectful, technical, fact-based discussions. No personal attacks, no spam.
+
+By contributing, you agree your contribution is published under MIT.
+
+---
+
+## Francais
+
+Merci de ton interet. Ce projet grandit avec les contributions communautaires.
+
+### Types de contributions
+
+#### 1. Partager une capture RS485
+
+La contribution la plus utile. Ouvre une issue avec le template `capture_share` et joins ton fichier `.bin` avec :
+
+- Modele de spa (reference exacte si possible)
+- Annee de fabrication
+- Duree de la capture
+- Actions realisees pendant la capture (timeline)
+- IP et configuration du USR-W610
+
+#### 2. Ajouter un profil de nouveau modele
+
+Si tu as identifie le protocole d'un nouveau modele de spa, ajoute un profil JSON dans `profiles/`. Voir [profiles/README.md](profiles/README.md).
+
+#### 3. Ameliorer la logique du decodeur
+
+PRs bienvenues pour :
+- Meilleure auto-detection du protocole
+- Nouveaux champs decodes pour les profils existants
+- Ameliorations UI (responsive, accessibilite, langues)
+- Performance sur grosses captures
+
+#### 4. Traduire
+
+L'UI est actuellement en anglais avec quelques strings en francais. Les traductions vers d'autres langues sont bienvenues via PR.
+
+### Workflow
 
 1. Fork du depot
-2. Branche dediee pour votre contribution : `git checkout -b feature/decode-bits-byte17`
-3. Commits clairs et atomiques avec messages explicites
-4. Test du code modifie sur au moins une capture reelle
-5. Pull Request avec description detaillee de ce qui a ete teste
+2. Branche dediee : `git checkout -b feature/p25b85-profile`
+3. Commits atomiques avec messages clairs
+4. Test sur captures reelles
+5. Pull Request decrivant ce qui a ete teste
 
-## Conventions de code
+### Conventions de code
 
-- Python 3.8+
-- Pas de dependances externes (que stdlib)
-- Type hints sur les fonctions publiques
-- Docstrings en francais ou anglais (selon votre prefence, soyez coherent dans un meme fichier)
-- Indentation 4 espaces (PEP 8)
-- Pas de print() de debug laisses en place
+- JavaScript vanilla, aucune dependance framework
+- Aucun import CDN externe (doit fonctionner offline)
+- Indentation : 2 espaces
+- JSON profile : suivre la structure de `_template.json`
+- Type hints en JSDoc quand utile
 
-## Tests
+### Tests
 
-Avant de proposer une PR, validez votre code sur une capture reelle :
+Teste tes modifications sur :
+- Navigateur desktop (Chrome, Firefox, Safari)
+- Navigateur mobile (Safari iOS, Chrome Android)
+- Captures reelles d'au moins un modele
 
+Valider les profils JSON :
+
+```bash
+python -m json.tool profiles/ton_profil.json
 ```
-python analyzer.py votre_capture.bin
-```
 
-Verifiez que :
-- Le script tourne sans erreur
-- Le decodage du broadcast 0xB4 retourne des valeurs coherentes (temperature plausible 20-40 degC)
-- Les trames rares sont correctement identifiees
+### Code de conduite
 
-## Communication
+Discussions respectueuses, techniques, basees sur les faits. Aucune attaque personnelle, aucun spam.
 
-- **Issues GitHub** : bugs, demandes de fonctionnalites, partage de captures
-- **Pull Requests** : ameliorations de code ou documentation
-- **Forum Home Assistant Community** : discussion generale sur le protocole Joyonway et integration HA - https://community.home-assistant.io/t/joyonway-spa-control/582344
-
-## Code de conduite
-
-Comportement respectueux attendu. Les attaques personnelles, le harcelement, ou tout comportement toxique ne sont pas toleres. Ce projet est un effort collaboratif beneficiant a la communaute.
-
-## Licence
-
-En contribuant, vous acceptez que vos contributions soient publiees sous la meme licence MIT que le projet.
-
-## Remerciements aux contributeurs initiaux
-
-- **Gaet78** pour l'integration HACS originelle Joyonway et le decodage du P69B133
-- **KDy** pour l'analyse comparative des trames broadcast et la mesure oscilloscope (validation du baudrate 38400)
-- **Neuro** pour les travaux ESP32+MAX485 sur le P23B32 V2
-
-Ce projet n'aurait pas existe sans le fil d'echanges de la communaute Home Assistant.
+En contribuant, tu acceptes que ta contribution soit publiee sous MIT.

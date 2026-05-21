@@ -1,0 +1,109 @@
+{
+  "id": "p23b32_v2",
+  "name": "Joyonway P23B32 V2 (2019)",
+  "manufacturer": "Joyonway / Mesda",
+  "year": "2019",
+  "status": "validated",
+  "contributors": ["KnapTheBuilder", "KDy", "Neuro"],
+  "physical": {
+    "baudrate": 38400,
+    "data_bits": 8,
+    "parity": "none",
+    "stop_bits": 1,
+    "validation_method": "oscilloscope (KDy, 26us/bit)"
+  },
+  "frame_format": {
+    "delimiter_start": "0x1A",
+    "delimiter_end": "0x1D",
+    "pseudo_escape": false,
+    "crc_validation": false,
+    "type_byte_offset": 5
+  },
+  "known_types": {
+    "0xA1": {
+      "name": "Equipment command",
+      "description": "Light, pumps, blower, setpoint",
+      "typical_length": 23
+    },
+    "0xA4": {
+      "name": "Filtration / planning",
+      "description": "Filtration schedule update",
+      "typical_length": 22
+    },
+    "0xAA": {
+      "name": "Heartbeat",
+      "description": "Idle state ping (NOT a command)",
+      "typical_length": 14
+    },
+    "0xB4": {
+      "name": "Status broadcast",
+      "description": "Temperature, setpoint, equipment states",
+      "typical_length": 69
+    },
+    "0xA5": {
+      "name": "Sensor polling",
+      "description": "Internal sensor polling (do not replay)",
+      "typical_length": 12
+    },
+    "0x2E": {
+      "name": "Actuator polling",
+      "description": "Internal actuator polling (do not replay)",
+      "typical_length": 12
+    }
+  },
+  "broadcast_fields": {
+    "type_byte": "0xB4",
+    "fields": {
+      "temp_celsius": {
+        "byte": 14,
+        "type": "uint8",
+        "unit": "degC",
+        "description": "Water temperature in Celsius (direct read)",
+        "validated": true
+      },
+      "temp_fahrenheit": {
+        "byte": 9,
+        "type": "uint8",
+        "unit": "degF",
+        "description": "Water temperature in Fahrenheit (alternative)",
+        "validated": true
+      },
+      "setpoint_fahrenheit": {
+        "byte": 16,
+        "type": "uint8",
+        "unit": "degF",
+        "range": [60, 104],
+        "description": "Thermostat setpoint in Fahrenheit (60F=15.5C to 104F=40C)",
+        "validated": true
+      },
+      "equipment_flags": {
+        "byte": 17,
+        "type": "bitmask",
+        "description": "Equipment state bitmask (decoding partial)",
+        "validated": "partial"
+      }
+    }
+  },
+  "command_frames": {
+    "LUMIERE_ON": "1a0130103ca100a100000040400204000081edbaa01b141d",
+    "LUMIERE_OFF": "1a0130103ca100a1000000404002040000805a20cdc11d",
+    "POMPE_GAUCHE_ON": "1a0130103ca100a10604000002040000008b3ee4131d",
+    "POMPE_GAUCHE_OFF": "1a0130103ca100a106000000020400000008bd10331d",
+    "POMPE_DROITE_ON": "1a0130103ca100a118100000020400000040d12de01d",
+    "POMPE_DROITE_OFF": "1a0130103ca100a11800000002040000004cdfff631d",
+    "BULLEUR_ON": "1a0130103ca100a10000040402040000000f7f1b11761d",
+    "BULLEUR_OFF": "1a0130103ca100a10000040002040000 00fcc2864f1d",
+    "FILTRATION": "1a0130103ca400a1620500160017000600fc7954c61d"
+  },
+  "transmission": {
+    "method": "replay broadcast frames with modified equipment flags",
+    "repeat_count": 10,
+    "interval_ms": 500,
+    "rationale": "Bus shared with multiple devices, repetition improves reliability"
+  },
+  "notes": [
+    "Controller does NOT validate CRC, allowing broadcast frames to be replayed as commands",
+    "CMD_ALL_OFF is actually a heartbeat (captured 90x in 5min idle), not a real off command",
+    "Setpoint frame in real conditions not yet captured (pending)"
+  ]
+}

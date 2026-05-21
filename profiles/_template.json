@@ -1,0 +1,55 @@
+{
+  "id": "_template",
+  "name": "TEMPLATE - Copy and rename this file to add a new model",
+  "manufacturer": "Joyonway",
+  "year": "YYYY",
+  "status": "draft",
+  "contributors": ["YourGitHubUsername"],
+  "physical": {
+    "baudrate": 38400,
+    "data_bits": 8,
+    "parity": "none",
+    "stop_bits": 1,
+    "validation_method": "describe how you confirmed the baudrate"
+  },
+  "frame_format": {
+    "delimiter_start": "0x??",
+    "delimiter_end": "0x??",
+    "pseudo_escape": false,
+    "crc_validation": false,
+    "type_byte_offset": 5,
+    "_comment": "Adjust offsets based on your captures"
+  },
+  "known_types": {
+    "0x??": {
+      "name": "Description of frame type",
+      "description": "Detailed role of this frame",
+      "typical_length": 0
+    }
+  },
+  "broadcast_fields": {
+    "type_byte": "0x??",
+    "fields": {
+      "temp_celsius": {
+        "byte": 0,
+        "type": "uint8",
+        "unit": "degC",
+        "description": "Water temperature in Celsius",
+        "validated": false
+      }
+    }
+  },
+  "command_frames": {
+    "EXAMPLE_LIGHT_ON": "1a01..."
+  },
+  "transmission": {
+    "method": "describe how commands are sent",
+    "repeat_count": 1,
+    "interval_ms": 100,
+    "rationale": "why this method"
+  },
+  "notes": [
+    "Add any specific findings here",
+    "Reference issues, threads, or related repos"
+  ]
+}

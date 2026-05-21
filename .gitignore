@@ -1,52 +1,24 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Environnements virtuels
-venv/
-env/
-ENV/
-.venv/
-
-# Editeurs et IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# OS
 .DS_Store
 Thumbs.db
 
-# Captures de test (souvent volumineuses et privees)
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Captures (user data, not committed)
 *.bin
 *.cap
 *.pcap
 captures/
 samples/*.bin
 
-# Logs et sorties de debug
+# Logs
 *.log
-debug_output/
 
-# Fichiers de test temporaires
-test_output/
-temp/
-tmp/
+# Build artifacts
+node_modules/
+dist/
+build/

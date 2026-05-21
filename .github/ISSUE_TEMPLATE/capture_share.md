@@ -1,51 +1,55 @@
 ---
-name: Partage de capture RS485
-about: Partager une capture pour aider au decodage du protocole
+name: Share an RS485 capture / Partager une capture RS485
+about: Help decode a new spa model by sharing a capture
 title: '[CAPTURE] '
-labels: capture
-assignees: ''
+labels: capture, new-model
 ---
 
-## Modele de controleur
+## Spa controller info / Info controleur de spa
 
-- Modele : (P23B32 V1, P23B32 V2, P25B37, P69B133, autre)
-- Annee de fabrication : (2019, 2020, etc.)
-- Numero de serie (optionnel) : 
+- **Model / Modele** : (P25B85, P20B29, P25B37, P69B133, other)
+- **Year / Annee** : 
+- **Manufacturer / Fabricant** : (Joyonway, Mesda, OEM, ...)
+- **Photo of controller / Photo du controleur** : (attach if possible / joindre si possible)
 
-## Conditions de la capture
+## Capture conditions / Conditions de capture
 
-- Date : YYYY-MM-DD
-- Duree de la capture : (en secondes ou minutes)
-- Etat initial du spa : (au repos, en filtration, en chauffage, etc.)
+- **Date** : YYYY-MM-DD
+- **Duration / Duree** : (in seconds or minutes)
+- **Initial state / Etat initial** : (idle, filtering, heating, ...)
 
-## Action(s) realisee(s) pendant la capture
+## Actions performed during capture / Actions realisees pendant la capture
 
-Decrire precisement ce que vous avez fait pendant la capture :
-
-- A T+30s : appui sur bouton "Lumiere ON" via app Joyonway
-- A T+60s : changement consigne de 35C a 36C
-- etc.
-
-## Materiel utilise
-
-- Pont serie : (USR-W610, autre)
-- Baudrate utilise : (38400 par defaut sur P23B32 V2)
-- IP/port du pont : 
-
-## Fichier de capture
-
-Joindre le fichier `.bin` en attachement (drag & drop dans cette issue).
-
-Si le fichier est trop volumineux (>25 Mo limite GitHub), partager via WeTransfer ou similaire.
-
-## Analyse preliminaire
-
-Sortie de `python analyzer.py capture.bin` (les premieres 50 lignes suffisent) :
+Be precise! Timeline format: / Soit precis ! Format timeline :
 
 ```
-Coller la sortie ici
+T+30s : pressed "Light ON" via Joyonway app
+T+60s : changed setpoint from 35C to 36C
+T+90s : turned off pump
 ```
 
-## Observations particulieres
+## Hardware used / Materiel utilise
 
-Tout element notable observe dans la capture.
+- **Serial bridge / Pont serie** : (USR-W610, USR-TCP232, ESP32, ...)
+- **Baudrate** : 
+- **IP/port** : 
+
+## Capture file / Fichier de capture
+
+Attach your `.bin` file here (drag and drop in the issue)
+Joindre votre fichier `.bin` ici (drag-drop dans l'issue)
+
+If too large (>25 MB), share via WeTransfer / Si trop volumineux, partager via WeTransfer.
+
+## Preliminary analysis (optional) / Analyse preliminaire (optionnel)
+
+If you used the frame analyzer, paste the report here:
+Si tu as utilise le frame analyzer, colle le rapport ici :
+
+```
+Paste analyzer output here
+```
+
+## Additional notes / Notes additionnelles
+
+Anything else useful / Tout autre element utile
