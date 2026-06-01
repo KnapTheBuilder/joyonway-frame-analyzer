@@ -1,0 +1,49 @@
+{
+  "id": "p69b133_balboa_like",
+  "name": "Joyonway P69B133 (Balboa-like)",
+  "manufacturer": "Joyonway",
+  "models_compatible": ["P69B133"],
+  "year": "unknown",
+  "status": "reference",
+  "contributors": [
+    "gaet78 (full reverse engineering, HACS integration)"
+  ],
+  "physical": {
+    "baudrate": 115200,
+    "data_bits": 8,
+    "parity": "none",
+    "stop_bits": 1
+  },
+  "frame_format": {
+    "delimiter_start": "0x7E",
+    "delimiter_end": "0x7E",
+    "pseudo_escape": false,
+    "crc_validation_by_controller": true,
+    "crc_type": "crc8-balboa",
+    "crc_poly": "0x07",
+    "crc_init": "0x71"
+  },
+  "addresses": {
+    "0x20": "Physical control panel",
+    "0x30": "Joyonway WiFi module",
+    "0x40": "Reserved slot",
+    "0x50": "Reserved slot",
+    "0x58": "Main controller / mainboard",
+    "0x61": "Heat pump / power module",
+    "0xF9": "Status broadcast",
+    "0xFE": "Heartbeat broadcast"
+  },
+  "transmission_method": {
+    "approach": "spoof control panel address 0x20, fire-and-forget flood",
+    "repeat_count": 200,
+    "interval_ms": 50,
+    "rationale": "Controller accepts frames without origin validation"
+  },
+  "w610_requirement": "Transparent Mode (NOT Modbus TCP-RTU)",
+  "reference_integration": "https://github.com/gaet78/homeassistant-joyonway-hacs-",
+  "notes": [
+    "This profile is the reference from @gaet78's reverse engineering",
+    "DIFFERENT protocol family from P23B32 V2 / P20B29 / P25B85 (different delimiters, baudrate, CRC)",
+    "Use @gaet78 HACS integration for this controller"
+  ]
+}

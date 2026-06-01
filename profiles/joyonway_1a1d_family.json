@@ -1,0 +1,176 @@
+{
+  "id": "joyonway_1a1d_family",
+  "name": "Joyonway 1A/1D family (P23B32 V2, P20B29, P25B85)",
+  "manufacturer": "Joyonway / Mesda",
+  "models_compatible": [
+    "Joyonway P23B32 V2 (2019)",
+    "Joyonway P20B29-2032 V183",
+    "Joyonway P25B85"
+  ],
+  "year": "2019+",
+  "status": "validated",
+  "contributors": [
+    "KDy (unescape table, B4 parser, oscilloscope baudrate validation)",
+    "Yannickt26 (P20B29 captures, setpoint frames 38C/10C)",
+    "alexbde (CRC-32 algorithm reverse engineering on P25B85)",
+    "KnapTheBuilder (P23B32 V2 captures, CRC cross-validation, HA integration)",
+    "Neuro (ESP32+MAX485 prototype on P23B32 V2)",
+    "old-man (P25B85 confirmation)"
+  ],
+  "physical": {
+    "baudrate": 38400,
+    "data_bits": 8,
+    "parity": "none",
+    "stop_bits": 1,
+    "validation_method": "oscilloscope by KDy (26us/bit period)",
+    "w610_485_switch_time_ms_recommended": 10
+  },
+  "frame_format": {
+    "delimiter_start": "0x1A",
+    "delimiter_end": "0x1D",
+    "pseudo_escape": true,
+    "escape_marker": "0x1B",
+    "escape_rule_source": "KDy post #90 of community thread",
+    "escape_table": {
+      "0x1B 0x11": "0x1A",
+      "0x1B 0x13": "0x1C",
+      "0x1B 0x14": "0x1D",
+      "0x1B 0x15": "0x1E",
+      "0x1B 0x0B": "0x1B"
+    },
+    "crc_present": true,
+    "crc_position": "last 4 bytes of inner frame, little-endian",
+    "crc_validation_by_controller": false,
+    "crc_replay_safe": true,
+    "type_byte_offset_post_unescape": 5
+  },
+  "crc_algorithm": {
+    "discovered_by": "alexbde",
+    "discovered_on": "P25B85",
+    "cross_validated_by": "KnapTheBuilder",
+    "cross_validated_on": ["P23B32 V2", "P20B29-2032 V183"],
+    "validation_rate": "9 / 11 frames",
+    "polynomial_hex": "0x04C11DB7",
+    "polynomial_name": "Ethernet / zlib standard CRC-32",
+    "init_hex": "0x00000000",
+    "xor_out_hex": "0x552D22C8",
+    "reflection": "none, MSB-first",
+    "pre_processing": "each 32-bit word of the payload is byte-swapped before CRC computation",
+    "rationale": "byte-swap is characteristic of an ARM Cortex-M MCU feeding a hardware CRC peripheral in little-endian word order",
+    "wire_encoding": "little-endian, 4 bytes between payload and 0x1D delimiter",
+    "failing_frames": ["LIGHT_ON", "LIGHT_OFF"],
+    "failing_reason": "LIGHT frames carry a 17-byte payload instead of 16, likely an extra state byte (RGB mode or brightness) - under investigation",
+    "reference_implementation_python": "https://github.com/KnapTheBuilder/ha-joyonway-p23b32/blob/main/custom_components/joyonway_p23b32/crc.py",
+    "reference_implementation_javascript": "https://github.com/KnapTheBuilder/joyonway-frame-analyzer/blob/main/crc.js",
+    "original_repo": "https://github.com/alexbde/ha-joyonway-p25b85"
+  },
+  "addresses": {
+    "0x01": "Main controller / mainboard",
+    "0x10": "Control panel slot 1 (PB555)",
+    "0x11": "Control panel slot 2",
+    "0x12": "Control panel slot 3",
+    "0x13": "Control panel slot 4",
+    "0x20": "WiFi module slot 1",
+    "0x21": "WiFi module slot 2",
+    "0x30": "Active panel address (most common)",
+    "0xFF": "Broadcast"
+  },
+  "known_types_post_unescape": {
+    "0xA1": {
+      "name": "Equipment command",
+      "description": "Light, pumps, blower, setpoint (panel -> mainboard)",
+      "typical_length": 23,
+      "direction": "panel -> mainboard"
+    },
+    "0xA4": {
+      "name": "Filtration / planning",
+      "description": "Filtration schedule update"
+    },
+    "0xA5": {
+      "name": "Sensor polling",
+      "description": "Internal sensor polling (do NOT replay)"
+    },
+    "0xAA": {
+      "name": "Heartbeat",
+      "description": "Idle heartbeat (do NOT confuse with off command)"
+    },
+    "0xB4": {
+      "name": "Status broadcast",
+      "description": "Temperature, setpoint, equipment states, date/time",
+      "frequency_seconds_approx": 1
+    }
+  },
+  "command_frames_pre_unescape": {
+    "common_prefix_panel_to_mainboard": "1a 01 30 10 3c a1 00 a1",
+    "LIGHT_ON": {
+      "hex": "1a0130103ca100a100004040020400008081edbaa01b141d",
+      "validated_by": ["KnapTheBuilder"],
+      "crc_validation": "FAIL (17-byte payload, under investigation)"
+    },
+    "LIGHT_OFF": {
+      "hex": "1a0130103ca100a1000040400204000080805a20cdc11d",
+      "validated_by": ["KnapTheBuilder"],
+      "crc_validation": "FAIL (17-byte payload, under investigation)"
+    },
+    "PUMP_LEFT_ON": {
+      "hex": "1a0130103ca100a10604000002040000008b3ee4131d",
+      "crc_validation": "OK"
+    },
+    "PUMP_LEFT_OFF": {
+      "hex": "1a0130103ca100a106000000020400000008bd10331d",
+      "crc_validation": "OK"
+    },
+    "PUMP_RIGHT_ON": {
+      "hex": "1a0130103ca100a118100000020400000040d12de01d",
+      "crc_validation": "OK"
+    },
+    "PUMP_RIGHT_OFF": {
+      "hex": "1a0130103ca100a11800000002040000004cdfff631d",
+      "crc_validation": "OK"
+    },
+    "BLOWER_ON": {
+      "hex": "1a0130103ca100a10000040402040000000f7f1b11761d",
+      "crc_validation": "OK"
+    },
+    "BLOWER_OFF": {
+      "hex": "1a0130103ca100a1000004000204000000fcc2864f1d",
+      "crc_validation": "OK"
+    },
+    "FILTRATION": {
+      "hex": "1a0130103ca400a1620500160017000600fc7954c61d",
+      "crc_validation": "OK"
+    },
+    "SETPOINT_38C_TEMPLATE": {
+      "hex": "1a0130103ca100a1000080800204006400962061e11d",
+      "validated_by": ["Yannickt26"],
+      "decoded_celsius": 38,
+      "decoded_fahrenheit": 100,
+      "crc_validation": "OK",
+      "note": "reconstructable byte-identical with alexbde CRC algorithm"
+    },
+    "SETPOINT_10C_TEMPLATE": {
+      "hex": "1a0130103ca100a10000808002040032003422138e1d",
+      "validated_by": ["Yannickt26"],
+      "decoded_celsius": 10,
+      "decoded_fahrenheit": 50,
+      "crc_validation": "OK"
+    }
+  },
+  "setpoint_command_generation": {
+    "method": "compute mathematically with the alexbde CRC algorithm - no per-temperature capture required",
+    "payload_template_16_bytes": "01 30 10 3C A1 00 A1 00 00 80 80 02 04 00 [F] 00",
+    "formula_celsius_to_fahrenheit": "byte_15 = round((celsius * 9 / 5) + 32)",
+    "supported_range_celsius": [15.5, 40.0],
+    "supported_range_fahrenheit": [60, 104]
+  },
+  "important_notes": [
+    "Controller does NOT validate CRC, allowing replay of broadcast or captured frames as commands",
+    "P23B32 V2, P20B29 and P25B85 share IDENTICAL protocol byte positions AFTER applying KDy unescape",
+    "Manual heater control requires PB555 menu activation (per official manual)",
+    "v2.1: setpoints can now be generated mathematically thanks to the alexbde CRC algorithm"
+  ],
+  "community_thread": "https://community.home-assistant.io/t/joyonway-spa-control/582344",
+  "frame_analyzer": "https://knapthebuilder.github.io/joyonway-frame-analyzer/",
+  "ha_integration": "https://github.com/KnapTheBuilder/ha-joyonway-p23b32",
+  "alexbde_repo": "https://github.com/alexbde/ha-joyonway-p25b85"
+}
