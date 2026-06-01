@@ -1,0 +1,33 @@
+V3.3 to V3.8.1 - Multi-model, paste frames, CRC validation, contribute flow, i18n
+
+This release brings the GitHub Pages site to parity with the HA-local
+version and lays the groundwork for community-driven protocol decoding.
+
+V3.3 - Paste frames feature (textarea card 2bis for forum-shared
+       isolated frames, capture and raw modes)
+V3.4 - Multi-model semantic interpretation engine (P23B32, P25B85,
+       P69B133) with auto-detection by frame structure
+V3.5 - Enriched per-model byte mappings (B4 broadcast, B5 schedules,
+       A1 setpoint, A1 pump, AE light, A4 filtration) and explicit
+       "no public mapping" message for P25B37, P20B29, P68B123
+V3.5.1 - P23B32_B4 detector raw-length window widened from <=70 to
+         <=90 to accept longer broadcasts (Yannick P23B32 75-byte
+         frames). P25B85 detector pushed to >90.
+V3.6 - CRC-8 validation for P69B133 frames (poly 0x07, init 0x71)
+       with green / red badge and REAL replayable command set
+V3.7 - Community contribution card: one-click pre-filled GitHub
+       issue + downloadable contribution.md + maintainer auto-
+       notification via HA webhook backend
+V3.8 - EN / FR language switch with localStorage persistence and
+       MutationObserver for dynamic content from addons
+
+The HTML now references 4 addon scripts loaded after the inline
+V3.2 engine. Each addon is non-invasive (idempotent injection,
+defensive DOM lookups, original-content cache). No external
+dependencies. No data ever leaves the user's browser without
+explicit action via the Contribute button.
+
+Acknowledgements: KDy (RS485 protocol decode), Gaet78 (P69B133
+reference integration and CRC-8), Neuro (ESP32 + MAX485 P23B32 V2),
+Alex (P25B85 hardware + captures), Yannickt26 (P23B32 captures +
+forum feedback).

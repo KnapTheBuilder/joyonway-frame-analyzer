@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Joyonway Frame Analyzer v2.1</title>
+<style>
+  :root {
+    --bg: #0a0a14;
+    --bg-card: #0d0d1f;
+    --cyan: #00e5ff;
+    --magenta: #ff00e5;
+    --green: #00ff88;
+    --red: #ff3366;
+    --yellow: #ffcc00;
+    --text: #d0d0e0;
+    --text-dim: #7080a0;
+    --border: #2a2a40;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--bg) 0%, var(--bg-card) 100%);
+    color: var(--text);
+    font-family: 'Orbitron', 'Courier New', monospace;
+    min-height: 100vh;
+  }
+  h1 {
+    color: var(--cyan);
+    text-shadow: 0 0 10px var(--cyan);
+    margin: 0 0 8px 0;
+    font-size: 1.6em;
+    letter-spacing: 2px;
+  }
+  h2 {
+    color: var(--magenta);
+    text-shadow: 0 0 6px var(--magenta);
+    margin: 20px 0 10px 0;
+    font-size: 1.1em;
+    letter-spacing: 1px;
+  }
+  .subtitle {
+    color: var(--text-dim);
+    margin: 0 0 24px 0;
+    font-size: 0.85em;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.05);
+  }
+  textarea, input[type="text"] {
+    width: 100%;
+    background: #050510;
+    color: var(--cyan);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.95em;
+    resize: vertical;
+  }
+  textarea:focus, input:focus {
+    outline: none;
+    border-color: var(--cyan);
+    box-shadow: 0 0 6px rgba(0, 229, 255, 0.4);
+  }
+  button {
+    background: transparent;
+    color: var(--cyan);
+    border: 1px solid var(--cyan);
+    border-radius: 2px;
+    padding: 8px 18px;
+    font-family: 'Orbitron', monospace;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin: 4px 4px 0 0;
+  }
+  button:hover {
+    background: var(--cyan);
+    color: var(--bg);
+    box-shadow: 0 0 10px var(--cyan);
+  }
+  button.secondary { color: var(--magenta); border-color: var(--magenta); }
+  button.secondary:hover { background: var(--magenta); box-shadow: 0 0 10px var(--magenta); }
+  .result-row {
+    padding: 10px;
+    margin: 6px 0;
+    border-left: 3px solid var(--border);
+    background: rgba(0, 229, 255, 0.03);
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    word-break: break-all;
+  }
+  .result-row.ok { border-left-color: var(--green); }
+  .result-row.fail { border-left-color: var(--red); }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-size: 0.8em;
+    letter-spacing: 1px;
+    margin-right: 8px;
+  }
+  .badge.ok { background: var(--green); color: var(--bg); }
+  .badge.fail { background: var(--red); color: white; }
+  .badge.info { background: var(--cyan); color: var(--bg); }
+  .label { color: var(--text-dim); margin-right: 8px; }
+  .value { color: var(--text); }
+  .hex { color: var(--yellow); }
+  .crc-hex { color: var(--magenta); font-weight: bold; }
+  .footer {
+    margin-top: 30px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 0.8em;
+    text-align: center;
+  }
+  .footer a { color: var(--cyan); text-decoration: none; }
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 12px 0;
+  }
+  .slider-row input[type="range"] { flex: 1; }
+  .slider-row .value-display {
+    color: var(--cyan);
+    font-weight: bold;
+    min-width: 60px;
+    text-align: right;
+  }
+  details { margin: 8px 0; }
+  summary {
+    cursor: pointer;
+    color: var(--cyan);
+    padding: 6px 0;
+    font-size: 0.9em;
+  }
+  .credits {
+    background: rgba(255, 0, 229, 0.05);
+    border-left: 3px solid var(--magenta);
+    padding: 10px;
+    margin: 12px 0;
+    font-size: 0.85em;
+  }
+  .credits strong { color: var(--magenta); }
+  .stats {
+    display: flex;
+    gap: 24px;
+    margin: 12px 0;
+    flex-wrap: wrap;
+  }
+  .stat-block {
+    background: rgba(0, 229, 255, 0.05);
+    padding: 8px 16px;
+    border-radius: 2px;
+    border-left: 2px solid var(--cyan);
+  }
+  .stat-label { color: var(--text-dim); font-size: 0.8em; display: block; }
+  .stat-value { color: var(--cyan); font-size: 1.4em; font-weight: bold; }
+  .stat-value.fail { color: var(--red); }
+  pre.copybox {
+    background: #050510;
+    color: var(--yellow);
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    font-size: 0.85em;
+    overflow-x: auto;
+    user-select: all;
+    margin: 8px 0 0 0;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>JOYONWAY FRAME ANALYZER</h1>
+  <p class="subtitle">
+    Decode, validate and generate RS-485 frames for the Joyonway 1A/1D family
+    (P23B32, P20B29, P25B85 and compatible). v2.1.0 - CRC algorithm by alexbde.
+  </p>
+
+  <div class="credits">
+    <strong>Credits.</strong>
+    Pseudo-escape table and broadcast parser by <strong>KDy</strong>.
+    CRC-32 algorithm reverse-engineered by <strong>alexbde</strong>.
+    P20B29 setpoint captures by <strong>Yannickt26</strong>.
+    P23B32 V2 captures and cross-validation by <strong>KnapTheBuilder</strong>.
+    Additional captures and ideas by <strong>Neuro</strong> and <strong>old-man</strong>.
+  </div>
+
+  <div class="card">
+    <h2>1. Decode &amp; validate frames</h2>
+    <p class="label">
+      Paste raw hex frames (with or without spaces, one per line or all in one).
+      The analyzer will split, unescape, parse and validate the CRC of each.
+    </p>
+    <textarea id="input" rows="5" placeholder="e.g. 1a0130103ca100a10604000002040000008b3ee4131d
+1a0130103ca100a1000080800204006400962061e11d"></textarea>
+    <div style="margin-top: 10px;">
+      <button onclick="decodeFrames()">DECODE</button>
+      <button class="secondary" onclick="loadSample()">SAMPLE</button>
+      <button class="secondary" onclick="clearInput()">CLEAR</button>
+    </div>
+    <div id="stats" class="stats"></div>
+    <div id="output"></div>
+  </div>
+
+  <div class="card">
+    <h2>2. Generate a setpoint frame (any temperature)</h2>
+    <p class="label">
+      The CRC is computed mathematically (alexbde algorithm), so no capture is
+      required. Range 15.5 C to 40 C, 0.5 C step. Validated by cross-check
+      against Yannickt26's P20B29 wire captures.
+    </p>
+    <div class="slider-row">
+      <input type="range" id="tempSlider" min="15.5" max="40" step="0.5" value="38">
+      <span class="value-display"><span id="tempValue">38.0</span> &deg;C</span>
+    </div>
+    <pre class="copybox" id="setpointFrame">click GENERATE</pre>
+    <div style="margin-top: 10px;">
+      <button onclick="generateSetpoint()">GENERATE</button>
+      <button class="secondary" onclick="copySetpoint()">COPY HEX</button>
+    </div>
+    <div id="setpointDetails" style="margin-top: 12px;"></div>
+  </div>
+
+  <div class="card">
+    <h2>3. About the CRC algorithm</h2>
+    <details>
+      <summary>Show parameters and validation status</summary>
+      <div class="result-row">
+        <span class="label">Polynomial</span><span class="hex">0x04C11DB7</span><br>
+        <span class="label">Init</span><span class="hex">0x00000000</span><br>
+        <span class="label">XorOut</span><span class="hex">0x552D22C8</span><br>
+        <span class="label">Reflection</span><span class="value">none, MSB-first</span><br>
+        <span class="label">Pre-step</span><span class="value">each 32-bit word of the payload is byte-swapped before CRC</span><br>
+        <span class="label">Wire encoding</span><span class="value">little-endian, 4 bytes between payload and 0x1D</span>
+      </div>
+      <p style="font-size: 0.85em; color: var(--text-dim); margin-top: 8px;">
+        The byte-swap step is characteristic of an ARM Cortex-M MCU feeding a
+        hardware CRC peripheral in little-endian word order. This is what makes
+        the algorithm difficult to find with standard CRC analysis tools.
+      </p>
+      <p style="font-size: 0.85em; color: var(--text-dim);">
+        Cross-validated on P23B32 V2 (9 of 11 frames OK) and P20B29 setpoint
+        captures (2 of 2 OK). The 2 failing frames are LIGHT_ON / LIGHT_OFF,
+        which carry a 17-byte payload instead of 16 - likely an extra state
+        byte (RGB mode or brightness) that remains under investigation.
+      </p>
+    </details>
+  </div>
+
+  <div class="footer">
+    <a href="https://community.home-assistant.io/t/joyonway-spa-control/582344" target="_blank">
+      HA community thread
+    </a>
+    &nbsp;|&nbsp;
+    <a href="https://github.com/KnapTheBuilder/joyonway-frame-analyzer" target="_blank">
+      Frame analyzer repo
+    </a>
+    &nbsp;|&nbsp;
+    <a href="https://github.com/KnapTheBuilder/ha-joyonway-p23b32" target="_blank">
+      HA integration
+    </a>
+    &nbsp;|&nbsp;
+    <a href="https://github.com/alexbde/ha-joyonway-p25b85" target="_blank">
+      alexbde original repo
+    </a>
+  </div>
+</div>
+
+<script src="unescape.js"></script>
+<script src="crc.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var U = window.JoyonwayUnescape;
+  var C = window.JoyonwayCrc;
+
+  function hex2bytes(s) {
+    var clean = s.replace(/[^0-9a-fA-F]/g, '');
+    if (clean.length % 2 !== 0) return null;
+    var out = new Uint8Array(clean.length / 2);
+    for (var i = 0; i < out.length; i++) {
+      out[i] = parseInt(clean.substr(i * 2, 2), 16);
+    }
+    return out;
+  }
+
+  function bytes2hex(b) {
+    return Array.from(b).map(function (x) {
+      return x.toString(16).padStart(2, '0');
+    }).join('');
+  }
+
+  function describePayload(payload) {
+    // Best-effort decoding of common command payloads
+    if (payload.length === 16 && payload[0] === 0x01 && payload[1] === 0x30) {
+      if (payload[5] === 0xa1) {
+        // Command frame from panel
+        if (payload[8] === 0x80 && payload[9] === 0x80) {
+          var tf = payload[14];
+          if (tf >= 60 && tf <= 104) {
+            var tc = Math.round((tf - 32) * 5 / 9 * 10) / 10;
+            return 'Setpoint command : ' + tc + ' C (' + tf + ' F)';
+          }
+        }
+        if (payload[7] === 0x06 && payload[8] === 0x04) return 'Pump left ON';
+        if (payload[7] === 0x06 && payload[8] === 0x00 && payload[9] === 0x00) return 'Pump left OFF';
+        if (payload[7] === 0x18 && payload[8] === 0x10) return 'Pump right ON';
+        if (payload[7] === 0x18 && payload[8] === 0x00) return 'Pump right OFF';
+        if (payload[9] === 0x04 && payload[10] === 0x04) return 'Blower ON';
+        if (payload[9] === 0x04 && payload[10] === 0x00) return 'Blower OFF';
+        if (payload[9] === 0x40 && payload[10] === 0x40) return 'Light command';
+      }
+      if (payload[5] === 0xa4) return 'Filtration / scheduling';
+    }
+    return 'Unknown / custom payload';
+  }
+
+  function decodeFrames() {
+    var text = document.getElementById('input').value;
+    var out = document.getElementById('output');
+    var stats = document.getElementById('stats');
+    out.innerHTML = '';
+    stats.innerHTML = '';
+
+    // Split on whitespace if multiple frames in one line, else by line
+    var pieces = text
+      .split(/\n|\r/)
+      .map(function (s) { return s.trim(); })
+      .filter(Boolean);
+
+    if (pieces.length === 0) {
+      out.innerHTML = '<div class="result-row fail">No input</div>';
+      return;
+    }
+
+    var pass = 0, fail = 0;
+
+    pieces.forEach(function (line, i) {
+      var raw = hex2bytes(line);
+      if (!raw || raw.length < 6) {
+        out.innerHTML += '<div class="result-row fail">' +
+          '<span class="badge fail">PARSE</span>' +
+          'Line ' + (i + 1) + ' : not a valid hex string</div>';
+        fail++;
+        return;
+      }
+      if (raw[0] !== 0x1A || raw[raw.length - 1] !== 0x1D) {
+        out.innerHTML += '<div class="result-row fail">' +
+          '<span class="badge fail">FRAMING</span>' +
+          'Line ' + (i + 1) + ' : missing 0x1A start or 0x1D end</div>';
+        fail++;
+        return;
+      }
+
+      var un = U.unescapeFrame(raw);
+      var inner = un.slice(1, -1);
+      if (inner.length < 5) {
+        out.innerHTML += '<div class="result-row fail">' +
+          '<span class="badge fail">SHORT</span>frame too short</div>';
+        fail++;
+        return;
+      }
+
+      // Last 4 bytes are CRC (LE), payload is the rest
+      var payload = inner.slice(0, -4);
+      var crcBytes = inner.slice(-4);
+      var ok = C.verifyCrc(payload, crcBytes);
+      var crcGot = (crcBytes[0]) | (crcBytes[1] << 8) | (crcBytes[2] << 16) | (crcBytes[3] << 24);
+      var crcExp = C.crcJoyonway(payload);
+
+      if (ok) pass++; else fail++;
+
+      var desc = describePayload(payload);
+      var html = '<div class="result-row ' + (ok ? 'ok' : 'fail') + '">';
+      html += '<span class="badge ' + (ok ? 'ok' : 'fail') + '">' +
+              (ok ? 'CRC OK' : 'CRC FAIL') + '</span>';
+      html += '<span class="badge info">L=' + raw.length + 'B</span>';
+      html += '<strong>' + desc + '</strong><br>';
+      html += '<span class="label">raw</span><span class="hex">' + bytes2hex(raw) + '</span><br>';
+      if (raw.length !== un.length) {
+        html += '<span class="label">unescaped</span><span class="hex">' + bytes2hex(un) + '</span><br>';
+      }
+      html += '<span class="label">payload</span><span class="hex">' + bytes2hex(payload) + '</span><br>';
+      html += '<span class="label">crc on wire (LE)</span><span class="crc-hex">' +
+              bytes2hex(crcBytes) + '</span> ';
+      html += '<span class="label">= 0x</span><span class="crc-hex">' +
+              (crcGot >>> 0).toString(16).padStart(8, '0') + '</span><br>';
+      if (!ok) {
+        html += '<span class="label">crc computed</span><span class="crc-hex">0x' +
+                (crcExp >>> 0).toString(16).padStart(8, '0') + '</span>';
+      }
+      html += '</div>';
+      out.innerHTML += html;
+    });
+
+    stats.innerHTML =
+      '<div class="stat-block"><span class="stat-label">TOTAL</span>' +
+      '<span class="stat-value">' + (pass + fail) + '</span></div>' +
+      '<div class="stat-block"><span class="stat-label">CRC OK</span>' +
+      '<span class="stat-value">' + pass + '</span></div>' +
+      '<div class="stat-block"><span class="stat-label">CRC FAIL</span>' +
+      '<span class="stat-value ' + (fail > 0 ? 'fail' : '') + '">' + fail + '</span></div>';
+  }
+
+  // Setpoint generator -------------------------------------------------
+
+  function buildSetpoint(tempC) {
+    var tempF = Math.round(tempC * 9 / 5 + 32);
+    if (tempF < 60 || tempF > 104) {
+      throw new Error('Out of range (15.5 C to 40 C)');
+    }
+    var payload = new Uint8Array([
+      0x01, 0x30, 0x10, 0x3C, 0xA1, 0x00, 0xA1,
+      0x00, 0x00, 0x80, 0x80, 0x02, 0x04, 0x00,
+      tempF & 0xFF, 0x00
+    ]);
+    var crc = C.encodeCrc(payload);
+    var inner = new Uint8Array(payload.length + crc.length);
+    inner.set(payload);
+    inner.set(crc, payload.length);
+    var escaped = U.escapeFrame ? U.escapeFrame(inner) : inner;
+    var full = new Uint8Array(1 + escaped.length + 1);
+    full[0] = 0x1A;
+    full.set(escaped, 1);
+    full[full.length - 1] = 0x1D;
+    return { hex: bytes2hex(full), tempF: tempF, payload: payload, crc: crc };
+  }
+
+  function generateSetpoint() {
+    var c = parseFloat(document.getElementById('tempSlider').value);
+    var box = document.getElementById('setpointFrame');
+    var det = document.getElementById('setpointDetails');
+    try {
+      var r = buildSetpoint(c);
+      box.textContent = r.hex;
+      det.innerHTML = '<div class="result-row ok">' +
+        '<span class="badge ok">VALID</span>' +
+        '<strong>Setpoint ' + c.toFixed(1) + ' C (' + r.tempF + ' F)</strong><br>' +
+        '<span class="label">payload</span><span class="hex">' + bytes2hex(r.payload) + '</span><br>' +
+        '<span class="label">crc (LE)</span><span class="crc-hex">' + bytes2hex(r.crc) + '</span>' +
+        '</div>';
+    } catch (e) {
+      box.textContent = '';
+      det.innerHTML = '<div class="result-row fail"><span class="badge fail">ERROR</span>' + e.message + '</div>';
+    }
+  }
+
+  function copySetpoint() {
+    var t = document.getElementById('setpointFrame').textContent;
+    if (!t || t.indexOf('click') === 0) return;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(t);
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = t;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+  }
+
+  // UI wiring
+  document.getElementById('tempSlider').addEventListener('input', function (e) {
+    document.getElementById('tempValue').textContent = parseFloat(e.target.value).toFixed(1);
+  });
+
+  window.decodeFrames = decodeFrames;
+  window.generateSetpoint = generateSetpoint;
+  window.copySetpoint = copySetpoint;
+  window.loadSample = function () {
+    document.getElementById('input').value =
+      '1a0130103ca100a10604000002040000008b3ee4131d\n' +
+      '1a0130103ca100a106000000020400000008bd10331d\n' +
+      '1a0130103ca100a118100000020400000040d12de01d\n' +
+      '1a0130103ca100a10000040402040000000f7f1b11761d\n' +
+      '1a0130103ca400a1620500160017000600fc7954c61d\n' +
+      '1a0130103ca100a1000080800204006400962061e11d\n' +
+      '1a0130103ca100a10000808002040032003422138e1d';
+    decodeFrames();
+  };
+  window.clearInput = function () {
+    document.getElementById('input').value = '';
+    document.getElementById('output').innerHTML = '';
+    document.getElementById('stats').innerHTML = '';
+  };
+
+  // Initial setpoint render
+  generateSetpoint();
+})();
+</script>
+</body>
+</html>

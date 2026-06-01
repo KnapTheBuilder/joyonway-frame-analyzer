@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Joyonway Frame Analyzer V4.0</title>
+<style>
+:root {
+  --bg-primary: #0a0a14;
+  --bg-secondary: #0d0d1f;
+  --bg-card: rgba(20, 20, 40, 0.75);
+  --border-cyan: #00e5ff;
+  --border-magenta: #ff00e5;
+  --text-primary: #e0e8ff;
+  --text-dim: #8090b0;
+  --accent-green: #00ff88;
+  --accent-orange: #ff9500;
+  --accent-red: #ff3366;
+  --accent-yellow: #ffd400;
+  --accent-purple: #a064ff;
+  --mono: 'Courier New', 'Monaco', 'Menlo', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+  color: var(--text-primary);
+  min-height: 100vh;
+  padding: 16px;
+}
+.container { max-width: 1400px; margin: 0 auto; }
+h1 {
+  color: var(--border-magenta);
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-shadow: 0 0 12px rgba(255, 0, 229, 0.5);
+  margin-bottom: 4px;
+}
+.subtitle {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+.version-pill {
+  display: inline-block;
+  background: rgba(255, 0, 229, 0.15);
+  border: 1px solid var(--border-magenta);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  color: var(--border-magenta);
+  margin-left: 8px;
+  vertical-align: middle;
+}
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-cyan);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 0 18px rgba(0, 229, 255, 0.12);
+}
+.card-title {
+  color: var(--border-cyan);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+.dropzone {
+  border: 2px dashed var(--border-cyan);
+  border-radius: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: rgba(0, 229, 255, 0.05);
+}
+.dropzone:hover, .dropzone.dragover {
+  background: rgba(0, 229, 255, 0.15);
+  border-color: var(--border-magenta);
+  box-shadow: 0 0 25px rgba(0, 229, 255, 0.4);
+}
+.dropzone-text { color: var(--text-primary); font-size: 16px; margin-bottom: 6px; }
+.dropzone-hint { color: var(--text-dim); font-size: 12px; }
+input[type="file"] { display: none; }
+.btn {
+  background: rgba(0, 229, 255, 0.15);
+  border: 1px solid var(--border-cyan);
+  color: var(--border-cyan);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  margin: 4px 6px 4px 0;
+  transition: all 0.2s;
+}
+.btn:hover { background: rgba(0, 229, 255, 0.3); box-shadow: 0 0 12px rgba(0, 229, 255, 0.5); }
+.btn-magenta { border-color: var(--border-magenta); color: var(--border-magenta); background: rgba(255, 0, 229, 0.15); }
+.btn-magenta:hover { background: rgba(255, 0, 229, 0.3); box-shadow: 0 0 12px rgba(255, 0, 229, 0.5); }
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.stat-box {
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  border-radius: 6px;
+  padding: 12px;
+  text-align: center;
+}
+.stat-value { font-size: 24px; font-weight: 700; color: var(--accent-green); }
+.stat-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+.frame-row {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid var(--border-cyan);
+  margin-bottom: 4px;
+  word-break: break-all;
+}
+.frame-row.rare { border-left-color: var(--accent-orange); }
+.frame-row.command { border-left-color: var(--accent-red); }
+.frame-row .count { color: var(--accent-yellow); font-weight: 700; margin-right: 8px; }
+.frame-row .type { color: var(--accent-purple); margin-right: 8px; }
+.frame-row .hex { color: var(--text-primary); }
+.frame-row .info { color: var(--accent-green); font-style: italic; margin-left: 8px; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+th, td {
+  text-align: left;
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+}
+th { color: var(--border-cyan); text-transform: uppercase; letter-spacing: 1px; font-size: 10px; }
+.decode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+.decode-item {
+  background: rgba(255, 0, 229, 0.05);
+  border: 1px solid rgba(255, 0, 229, 0.3);
+  border-radius: 6px;
+  padding: 10px;
+}
+.decode-item .label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+.decode-item .value { font-size: 18px; font-weight: 700; color: var(--accent-green); margin-top: 4px; }
+.decode-item .raw { font-family: var(--mono); font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+.hidden { display: none; }
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.tab {
+  padding: 6px 14px;
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-dim);
+  transition: all 0.2s;
+}
+.tab.active {
+  background: rgba(0, 229, 255, 0.25);
+  border-color: var(--border-cyan);
+  color: var(--border-cyan);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+}
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.alert {
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+.alert-info { background: rgba(0, 229, 255, 0.1); border: 1px solid var(--border-cyan); color: var(--text-primary); }
+.alert-warn { background: rgba(255, 149, 0, 0.1); border: 1px solid var(--accent-orange); color: var(--accent-orange); }
+.alert-error { background: rgba(255, 51, 102, 0.1); border: 1px solid var(--accent-red); color: var(--accent-red); }
+.footer {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 11px;
+  margin-top: 24px;
+  padding: 16px;
+}
+.footer a { color: var(--border-cyan); text-decoration: none; }
+.footer a:hover { text-shadow: 0 0 8px var(--border-cyan); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>JOYONWAY FRAME ANALYZER <span class="version-pill">V4.0</span></h1>
+  <div class="subtitle">Analyseur de trames RS485 pour spa Joyonway P23B32 V2 (2019) - 100% local, aucune dependance externe</div>
+
+  <div class="card">
+    <div class="card-title">Charger une capture</div>
+    <div id="dropzone" class="dropzone">
+      <div class="dropzone-text">Glisser-deposer un fichier .bin ici</div>
+      <div class="dropzone-hint">ou cliquer pour selectionner / max 50 MB</div>
+      <input type="file" id="fileInput" accept=".bin,.cap,.dat">
+    </div>
+    <div id="fileInfo" class="hidden" style="margin-top: 12px;">
+      <div id="fileName" style="font-size: 13px; color: var(--border-cyan);"></div>
+      <div id="fileSize" style="font-size: 11px; color: var(--text-dim);"></div>
+    </div>
+  </div>
+
+  <div id="results" class="hidden">
+
+    <div class="card">
+      <div class="card-title">Statistiques globales</div>
+      <div id="statsGrid" class="stats-grid"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Decodage broadcast 0xB4 (etat global du spa)</div>
+      <div id="b4Decode"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Trames detaillees</div>
+      <div class="tabs">
+        <div class="tab active" data-tab="distribution">Distribution par type</div>
+        <div class="tab" data-tab="top">Top 10 frequentes</div>
+        <div class="tab" data-tab="rare">Trames rares (commandes)</div>
+        <div class="tab" data-tab="a1">Type 0xA1 (commandes)</div>
+        <div class="tab" data-tab="a4">Type 0xA4 (filtration)</div>
+        <div class="tab" data-tab="aa">Type 0xAA (heartbeat)</div>
+        <div class="tab" data-tab="b4">Type 0xB4 (broadcast)</div>
+      </div>
+      <div id="tab-distribution" class="tab-content active"></div>
+      <div id="tab-top" class="tab-content"></div>
+      <div id="tab-rare" class="tab-content"></div>
+      <div id="tab-a1" class="tab-content"></div>
+      <div id="tab-a4" class="tab-content"></div>
+      <div id="tab-aa" class="tab-content"></div>
+      <div id="tab-b4" class="tab-content"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Suggestions</div>
+      <div id="suggestions"></div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    Joyonway Frame Analyzer V4.0 - Christophe Knap (KnapTheBuilder)<br>
+    Remerciements communaute : Gaet78, KDy, Neuro<br>
+    Integration HA : <a href="https://github.com/KnapTheBuilder/ha-joyonway-p23b32" target="_blank">github.com/KnapTheBuilder/ha-joyonway-p23b32</a><br>
+    Outil Python : <a href="https://github.com/KnapTheBuilder/joyonway-frame-analyzer" target="_blank">github.com/KnapTheBuilder/joyonway-frame-analyzer</a>
+  </div>
+</div>
+
+<script>
+const TRAME_TYPES = {
+  0xA1: "Commande equipement",
+  0xA4: "Filtration / planning",
+  0xAA: "Heartbeat / arret",
+  0xB4: "Broadcast etat global",
+  0xA5: "Polling capteurs",
+  0x2E: "Polling actionneurs",
+  0xD2: "Signature constante"
+};
+
+const TYPE_COLORS = {
+  0xA1: "#ff3366",
+  0xA4: "#ff9500",
+  0xAA: "#a064ff",
+  0xB4: "#00ff88",
+  0xA5: "#8090b0",
+  0x2E: "#8090b0",
+  0xD2: "#ffd400"
+};
+
+function fToC(f) { return Math.round(((f - 32) * 5 / 9) * 10) / 10; }
+
+function bytesToHex(bytes) {
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function extractFrames(data) {
+  const frames = [];
+  let i = 0;
+  while (i < data.length) {
+    if (data[i] === 0x1A) {
+      let found = false;
+      for (let j = i + 1; j < data.length; j++) {
+        if (data[j] === 0x1D) {
+          frames.push(data.slice(i, j + 1));
+          i = j + 1;
+          found = true;
+          break;
+        }
+      }
+      if (!found) i++;
+    } else {
+      i++;
+    }
+  }
+  return frames;
+}
+
+function getFrameType(frame) {
+  return frame.length >= 6 ? frame[5] : null;
+}
+
+function decodeBroadcastB4(frame) {
+  if (frame.length < 20 || getFrameType(frame) !== 0xB4) return null;
+  const result = { length: frame.length, hex: bytesToHex(frame) };
+  if (frame.length > 9) {
+    result.temp_f_byte9 = frame[9];
+    result.temp_c_byte9 = fToC(frame[9]);
+  }
+  if (frame.length > 14) result.temp_c_byte14 = frame[14];
+  if (frame.length > 16) {
+    result.consigne_f_byte16 = frame[16];
+    result.consigne_c_byte16 = fToC(frame[16]);
+  }
+  if (frame.length > 17) {
+    result.flags_byte17 = frame[17];
+    result.flags_hex = '0x' + frame[17].toString(16).padStart(2, '0').toUpperCase();
+    result.flags_bin = '0b' + frame[17].toString(2).padStart(8, '0');
+  }
+  return result;
+}
+
+function countFrames(frames) {
+  const counts = new Map();
+  for (const f of frames) {
+    const hex = bytesToHex(f);
+    counts.set(hex, (counts.get(hex) || 0) + 1);
+  }
+  return counts;
+}
+
+function analyzeCapture(data) {
+  const frames = extractFrames(data);
+  const counts = countFrames(frames);
+
+  const result = {
+    fileSize: data.length,
+    totalFrames: frames.length,
+    uniqueFrames: counts.size,
+    frameTypes: {},
+    framesByType: {}
+  };
+
+  for (const [hex, count] of counts) {
+    const frame = new Uint8Array(hex.match(/.{2}/g).map(h => parseInt(h, 16)));
+    const ftype = getFrameType(frame);
+    if (ftype !== null) {
+      result.frameTypes[ftype] = (result.frameTypes[ftype] || 0) + count;
+      if (!result.framesByType[ftype]) result.framesByType[ftype] = [];
+      result.framesByType[ftype].push({ hex, count, length: frame.length });
+    }
+  }
+
+  for (const ftype in result.framesByType) {
+    result.framesByType[ftype].sort((a, b) => b.count - a.count);
+  }
+
+  result.top10 = Array.from(counts.entries())
+    .map(([hex, count]) => {
+      const frame = new Uint8Array(hex.match(/.{2}/g).map(h => parseInt(h, 16)));
+      return { hex, count, length: frame.length, type: getFrameType(frame) };
+    })
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  result.rares = Array.from(counts.entries())
+    .map(([hex, count]) => {
+      const frame = new Uint8Array(hex.match(/.{2}/g).map(h => parseInt(h, 16)));
+      return { hex, count, length: frame.length, type: getFrameType(frame) };
+    })
+    .filter(e => e.count <= 5)
+    .sort((a, b) => a.count - b.count);
+
+  for (const frame of frames) {
+    if (getFrameType(frame) === 0xB4) {
+      result.b4First = decodeBroadcastB4(frame);
+      break;
+    }
+  }
+  for (let i = frames.length - 1; i >= 0; i--) {
+    if (getFrameType(frames[i]) === 0xB4) {
+      result.b4Last = decodeBroadcastB4(frames[i]);
+      break;
+    }
+  }
+
+  return result;
+}
+
+function renderStats(result) {
+  const grid = document.getElementById('statsGrid');
+  grid.innerHTML = `
+    <div class="stat-box">
+      <div class="stat-value">${(result.fileSize / 1024).toFixed(1)}</div>
+      <div class="stat-label">Ko fichier</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value">${result.totalFrames}</div>
+      <div class="stat-label">Trames totales</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value">${result.uniqueFrames}</div>
+      <div class="stat-label">Trames uniques</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value">${Object.keys(result.frameTypes).length}</div>
+      <div class="stat-label">Types differents</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value">${result.rares.length}</div>
+      <div class="stat-label">Trames rares</div>
+    </div>
+  `;
+}
+
+function renderB4Decode(result) {
+  const div = document.getElementById('b4Decode');
+  if (!result.b4First) {
+    div.innerHTML = '<div class="alert alert-warn">Aucun broadcast 0xB4 trouve dans cette capture.</div>';
+    return;
+  }
+  const b = result.b4First;
+  const flagsHex = b.flags_hex || '?';
+  const flagsBin = b.flags_bin || '?';
+
+  div.innerHTML = `
+    <div class="decode-grid">
+      <div class="decode-item">
+        <div class="label">Temperature eau (byte 14)</div>
+        <div class="value">${b.temp_c_byte14 !== undefined ? b.temp_c_byte14 + ' degC' : 'N/A'}</div>
+        <div class="raw">Lecture directe en Celsius</div>
+      </div>
+      <div class="decode-item">
+        <div class="label">Temperature eau (byte 9)</div>
+        <div class="value">${b.temp_f_byte9 !== undefined ? b.temp_f_byte9 + ' degF' : 'N/A'}</div>
+        <div class="raw">${b.temp_c_byte9 !== undefined ? '= ' + b.temp_c_byte9 + ' degC' : ''}</div>
+      </div>
+      <div class="decode-item">
+        <div class="label">Consigne thermostat (byte 16)</div>
+        <div class="value">${b.consigne_f_byte16 !== undefined ? b.consigne_f_byte16 + ' degF' : 'N/A'}</div>
+        <div class="raw">${b.consigne_c_byte16 !== undefined ? '= ' + b.consigne_c_byte16 + ' degC' : ''}</div>
+      </div>
+      <div class="decode-item">
+        <div class="label">Flags equipements (byte 17)</div>
+        <div class="value">${flagsHex}</div>
+        <div class="raw">${flagsBin}</div>
+      </div>
+    </div>
+  `;
+
+  if (result.b4Last && result.b4First.hex !== result.b4Last.hex) {
+    const evolution = [];
+    if (result.b4Last.temp_c_byte14 !== b.temp_c_byte14) {
+      evolution.push('Temperature : ' + b.temp_c_byte14 + 'degC -> ' + result.b4Last.temp_c_byte14 + 'degC');
+    }
+    if (result.b4Last.consigne_f_byte16 !== b.consigne_f_byte16) {
+      evolution.push('Consigne : ' + b.consigne_f_byte16 + 'degF -> ' + result.b4Last.consigne_f_byte16 + 'degF');
+    }
+    if (result.b4Last.flags_byte17 !== b.flags_byte17) {
+      evolution.push('Flags : ' + b.flags_hex + ' -> ' + result.b4Last.flags_hex);
+    }
+    if (evolution.length > 0) {
+      div.innerHTML += '<div class="alert alert-info" style="margin-top: 12px;"><strong>Evolution premier -> dernier broadcast :</strong><br>' + evolution.join('<br>') + '</div>';
+    }
+  }
+}
+
+function renderDistribution(result) {
+  const div = document.getElementById('tab-distribution');
+  const sorted = Object.entries(result.frameTypes).sort((a, b) => b[1] - a[1]);
+  let html = '<table><thead><tr><th>Type</th><th>Hex</th><th>Occurrences</th><th>Role</th></tr></thead><tbody>';
+  for (const [type, count] of sorted) {
+    const typeNum = parseInt(type);
+    const color = TYPE_COLORS[typeNum] || '#8090b0';
+    const name = TRAME_TYPES[typeNum] || '(inconnu)';
+    html += '<tr><td style="color: ' + color + '; font-weight: 700;">0x' + typeNum.toString(16).padStart(2, '0').toUpperCase() + '</td><td style="font-family: var(--mono);">' + typeNum + '</td><td style="color: var(--accent-yellow);">' + count + '</td><td>' + name + '</td></tr>';
+  }
+  html += '</tbody></table>';
+  div.innerHTML = html;
+}
+
+function renderFrameList(div, frames, highlightConsigne) {
+  highlightConsigne = highlightConsigne || false;
+  if (!frames || frames.length === 0) {
+    div.innerHTML = '<div class="alert alert-warn">Aucune trame de ce type dans cette capture.</div>';
+    return;
+  }
+  let html = '';
+  for (const f of frames) {
+    const type = f.type !== null ? f.type : 0;
+    let info = '';
+    if (highlightConsigne && type === 0xA1 && f.length > 16) {
+      const bytes = f.hex.match(/.{2}/g).map(h => parseInt(h, 16));
+      const byte16 = bytes[16];
+      if (byte16 >= 60 && byte16 <= 104) {
+        info = ' [byte 16 = 0x' + byte16.toString(16).padStart(2, '0').toUpperCase() + ' = ' + fToC(byte16) + 'degC]';
+      }
+    }
+    const cls = f.count <= 5 ? 'frame-row rare' : 'frame-row';
+    html += '<div class="' + cls + '"><span class="count">x' + f.count + '</span><span class="type">[' + f.length + 'b] 0x' + type.toString(16).padStart(2, '0').toUpperCase() + '</span><span class="hex">' + f.hex + '</span>' + (info ? '<span class="info">' + info + '</span>' : '') + '</div>';
+  }
+  div.innerHTML = html;
+}
+
+function renderResults(result) {
+  document.getElementById('results').classList.remove('hidden');
+  renderStats(result);
+  renderB4Decode(result);
+  renderDistribution(result);
+  renderFrameList(document.getElementById('tab-top'), result.top10);
+  renderFrameList(document.getElementById('tab-rare'), result.rares, true);
+  renderFrameList(document.getElementById('tab-a1'), result.framesByType[0xA1] || [], true);
+  renderFrameList(document.getElementById('tab-a4'), result.framesByType[0xA4] || []);
+  renderFrameList(document.getElementById('tab-aa'), result.framesByType[0xAA] || []);
+  renderFrameList(document.getElementById('tab-b4'), result.framesByType[0xB4] || []);
+  renderSuggestions(result);
+}
+
+function renderSuggestions(result) {
+  const div = document.getElementById('suggestions');
+  const suggestions = [];
+  const a1Count = result.frameTypes[0xA1] || 0;
+  const a4Count = result.frameTypes[0xA4] || 0;
+  const b4Count = result.frameTypes[0xB4] || 0;
+  const rareA1 = result.rares.filter(f => f.type === 0xA1 && f.count <= 3);
+
+  if (a1Count > 50) {
+    suggestions.push({type: 'info', msg: 'Beaucoup de trames 0xA1 detectees. La plupart sont des broadcasts d etat repetes par le controleur.'});
+  }
+  if (rareA1.length > 0) {
+    suggestions.push({type: 'info', msg: rareA1.length + ' trame(s) 0xA1 rare(s) detectee(s). Ce sont probablement de vraies commandes envoyees par l app Joyonway. Examiner le byte 16 pour la consigne thermostat.'});
+  }
+  if (a4Count === 0) {
+    suggestions.push({type: 'warn', msg: 'Aucune trame 0xA4 capturee. Pour decoder la commande filtration, modifier le planning via l app Joyonway pendant la capture.'});
+  }
+  if (b4Count === 0) {
+    suggestions.push({type: 'error', msg: 'Aucun broadcast 0xB4 capture. Soit la capture est trop courte, soit le W610 ne communique pas correctement.'});
+  }
+  if (b4Count > 0 && result.b4First && result.b4Last) {
+    if (result.b4First.temp_c_byte14 !== result.b4Last.temp_c_byte14) {
+      suggestions.push({type: 'info', msg: 'Variation de temperature detectee : ' + result.b4First.temp_c_byte14 + 'degC -> ' + result.b4Last.temp_c_byte14 + 'degC. Indication d un cycle de chauffage actif.'});
+    }
+    if (result.b4First.consigne_f_byte16 !== result.b4Last.consigne_f_byte16) {
+      suggestions.push({type: 'info', msg: 'Changement de consigne detecte : ' + result.b4First.consigne_f_byte16 + 'degF -> ' + result.b4Last.consigne_f_byte16 + 'degF.'});
+    }
+  }
+  if (suggestions.length === 0) {
+    suggestions.push({type: 'info', msg: 'Capture analysee avec succes. Aucune anomalie detectee.'});
+  }
+
+  div.innerHTML = suggestions.map(s => '<div class="alert alert-' + s.type + '">' + s.msg + '</div>').join('');
+}
+
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const fileInfo = document.getElementById('fileInfo');
+const fileName = document.getElementById('fileName');
+const fileSize = document.getElementById('fileSize');
+
+dropzone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', (e) => {
+  if (e.target.files.length > 0) handleFile(e.target.files[0]);
+});
+
+['dragenter', 'dragover'].forEach(ev => {
+  dropzone.addEventListener(ev, (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropzone.classList.add('dragover');
+  });
+});
+['dragleave', 'drop'].forEach(ev => {
+  dropzone.addEventListener(ev, (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropzone.classList.remove('dragover');
+  });
+});
+dropzone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+});
+
+function handleFile(file) {
+  fileName.textContent = file.name;
+  fileSize.textContent = (file.size / 1024).toFixed(1) + ' Ko - ' + new Date(file.lastModified).toLocaleString('fr-FR');
+  fileInfo.classList.remove('hidden');
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const data = new Uint8Array(e.target.result);
+    const result = analyzeCapture(data);
+    renderResults(result);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
