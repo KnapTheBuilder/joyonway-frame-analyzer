@@ -1,0 +1,34 @@
+V4.1 - Multi-format upload + opt-in contribute flow for ha-joyonway-multi
+
+This release prepares the multi-model HA integration by enabling community
+contributions through the analyzer itself.
+
+ADDED
+- Multi-format upload: auto-detect binary vs text content. Accepts .bin
+  (raw bytes from nc), .txt / .log / .cap / .hex (xxd output, raw hex,
+  hex with spaces / commas / 0x prefix). Comment lines starting with #
+  are ignored. Heuristic: 512-byte sample, >=85% printable ASCII or
+  whitespace -> text mode, else binary mode.
+- Contribute card: opt-in checkbox (checked by default) sends anonymous
+  JSON payload to ha-joyonway-multi project endpoint. Fields: declared
+  controller model, declared keypad model, capture context (500 chars
+  max). 3-second debounce allows user to uncheck before send.
+- Payload includes: raw hex bytes (truncated to 100 KB hex max),
+  analyzer version, timestamp, user agent (truncated), declared model,
+  declared panel, context, frame count. No IP, no PII. MIT licensed.
+- Webhook URL configurable via CONTRIBUTE_WEBHOOK_URL constant at top
+  of inline JS. Empty value disables the send (UI visible but inactive).
+- Failure-safe: capture is always analyzed locally regardless of send
+  success or failure.
+
+CHANGED
+- Dropzone text now lists all accepted formats explicitly.
+- Version pill, footer, and page title bumped to V4.1.
+
+REMOVED
+- joyonway_v35_addon.js, v36, v37, v38: these addons patched the older
+  V3.2 base. The V4.0+ standalone implements equivalent functionality
+  natively, so the addons became dead code and were removed.
+
+Acknowledgements: KDy, Gaet78, Neuro, Alex, Yannickt26, mfo38, old-man
+for ongoing protocol decoding, hardware testing, and community feedback.

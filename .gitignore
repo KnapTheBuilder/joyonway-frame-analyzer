@@ -1,24 +1,22 @@
-# OS
+# OS files
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Editors
-.vscode/
-.idea/
+# Editor backups
+*.bak
 *.swp
 *~
 
-# Captures (user data, not committed)
+# Local dev / test
+.vscode/
+.idea/
+node_modules/
+__pycache__/
+*.pyc
+
+# Local captures (private data, not for publication)
+captures/
 *.bin
 *.cap
-*.pcap
-captures/
-samples/*.bin
-
-# Logs
-*.log
-
-# Build artifacts
-node_modules/
-dist/
-build/
+test_*.txt

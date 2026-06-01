@@ -1,34 +1,41 @@
 # Changelog
 
-## v2.0.0 - 2026-05-21
+All notable changes to the Joyonway Frame Analyzer.
 
-Architecture refactor: multi-model JSON profiles, community contribution workflow.
+## V4.1 (2026-06-01)
 
 ### Added
-
-- `profiles/` directory with JSON-based model descriptions
-- Two initial profiles: `p23b32_v2.json` (validated), `p69b133.json` (reference)
-- `_template.json` for community contributions
-- Issue templates: bug, capture share, new model profile
-- GitHub Actions workflow for auto-deploy to GitHub Pages on push to main
-- GitHub Actions workflow for JSON profile validation on PR
-- Bilingual README (English / Francais)
-- Bilingual CONTRIBUTING (English / Francais)
-- `docs/PROFILES.md` complete guide for adding new models
+- Multi-format upload: automatic detection of binary vs text content. Accepts `.bin` (raw bytes from `nc | dd`), `.txt` / `.log` / `.cap` / `.hex` (xxd output, raw hex, hex with spaces, hex with commas, hex with `0x` prefix), and comment lines starting with `#` are ignored.
+- Contribute card: opt-in checkbox (checked by default) to send the analyzed capture anonymously to the ha-joyonway-multi project endpoint. 3-second debounce allows decoupling. Optional fields for declared controller model, panel model, and capture context (free text, 500 chars max).
+- Payload: anonymous JSON with raw hex bytes, declared model/panel, timestamp, analyzer version, user agent (truncated). No IP, no PII, MIT license.
+- Payload truncation at 100 KB hex (50 KB raw data) to avoid oversized POST. Truncation flag included in payload.
+- Endpoint configurable via `CONTRIBUTE_WEBHOOK_URL` constant at top of inline JS. Empty = disabled (UI visible but inactive).
+- Failure-safe: if endpoint is down or CORS fails, capture is still analyzed locally and a clear error message is shown to the user.
 
 ### Changed
+- Dropzone text updated to reflect multi-format support.
+- Version pill bumped to V4.1.
 
-- README restructured for clarity and dual-language support
-- Project structure now supports community model contributions without code changes
+### Removed
+- `joyonway_v35_addon.js`, `joyonway_v36_addon.js`, `joyonway_v37_addon.js`, `joyonway_v38_i18n.js`: these addons were designed to patch the V3.2 base. The V4.0 standalone implements equivalent functionality natively, so the addons became dead code.
 
-### Deprecated
+---
 
-- Previous hard-coded FORMATS object in JavaScript (to be replaced by dynamic JSON loading in next minor version)
+## V4.0 (2026-05-30)
 
-### Credits for this release
+### Initial standalone release
+- Single-file analyzer, no addon dependency, no external CDN.
+- Auto-extraction of P23B32 frames using `1A...1D` delimiter with `1B XX` pseudo-escape handling.
+- B4 broadcast decoder: water temperature, setpoint, filtration, heater, bubbler, pump LEFT.
+- Statistics: frame count by CMD type, distribution chart.
+- Frame list with consigne (setpoint command) highlighting.
 
-- @KnapTheBuilder - Architecture, profiles, docs
-- @gaet78 - P69B133 reference data
-- @KDy - P23B32 V2 oscilloscope validation
-- @Neuro - ESP32+MAX485 prototype data
-- @Yannickt26 - Community captures
+---
+
+## Acknowledgements
+- KDy (HA forum): RS485 protocol decode for P23B32, oscilloscope analysis.
+- Gaet78: reference HACS integration for P69B133, CRC-8 algorithm.
+- Neuro: ESP32 + MAX485 testing on P23B32 V2.
+- Alex: P25B85 hardware and frame captures.
+- Yannickt26: P23B32 (P20B29 sticker) captures and forum feedback.
+- mfo38, old-man: ongoing P69B133 and P25B85 testing.
