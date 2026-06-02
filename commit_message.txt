@@ -1,27 +1,41 @@
-V4.2 - EN / FR language switch with localStorage persistence
+V4.2 - Full V4.0+V4.1+V4.2 in single standalone docs/index.html
 
-ADDED
-- Floating top-right pill (cyan, FR | EN) for bilingual UI. Default
-  language is FR (matches the analyzer's primary author language).
-  Selection persists across sessions via localStorage key
-  joyonway_lang.
-- Full bilingual coverage of static UI strings: card titles, dropzone
-  text, contribute card, stats labels, B4 decode labels, footer.
-- Dynamic content translation: Contribute status messages (waiting,
-  sending, success, canceled, disabled, error), input placeholders,
-  alert boxes, evolution messages between first and last B4 broadcast.
-- MutationObserver with 80 ms debounce automatically translates DOM
-  changes injected by analyzer rendering (stat boxes, tables, decode
-  grids) when the user is in EN mode.
-- Per-node WeakMap cache preserves original text on first translation
-  to allow lossless FR <-> EN round-trips without flicker.
+This commit consolidates all V4.x features into a single self-contained
+docs/index.html file (34 KB, no external dependencies):
 
-CHANGED
-- Version pill, footer text, and page title bumped to V4.2.
-- All inline strings in render functions remain in FR (the canonical
-  language). The i18n layer translates them at runtime when EN is
-  selected.
+V4.0 BASE
+- Drag and drop file upload
+- P23B32 frame extraction (1A...1D delimiter with 1B XX pseudo-escape)
+- B4 broadcast decode: water temp, setpoint, filtration, heater, bubbler
+- Statistics, distribution chart, tabs by CMD type
+- Consigne (setpoint) highlighting in A1 frames
+- Suggestions module
 
-Tested: FR <-> EN switching on Chrome, Safari iOS, Firefox. Default
-FR loads correctly on first visit. Switching to EN persists across
-page reload.
+V4.1 ADDITIONS
+- Multi-format upload: auto-detect binary vs text content
+- Accepts .bin (raw bytes), .txt / .log / .cap / .hex (hex text, xxd output,
+  raw hex, hex with spaces / commas / 0x prefix)
+- Comment lines starting with # are ignored
+- Heuristic: 512-byte sample, >=85% printable ASCII or whitespace -> text mode
+- Contribute card with opt-in checkbox (checked by default)
+- Anonymous JSON payload to ha-joyonway-multi project endpoint
+- Optional fields: declared controller model, declared keypad model,
+  capture context (500 chars max)
+- 3-second debounce allows user to uncheck before send
+- Payload truncation at 100 KB hex (50 KB raw data)
+- Webhook URL configurable via CONTRIBUTE_WEBHOOK_URL constant
+  (empty value = disabled, UI visible but inactive)
+- Failure-safe: capture always analyzed locally regardless of send result
+
+V4.2 ADDITIONS
+- Floating top-right pill (cyan, FR | EN) for bilingual UI
+- Default language is FR (matches the analyzer's primary author language)
+- Selection persists across sessions via localStorage key joyonway_lang
+- Full bilingual coverage of static UI strings: card titles, dropzone text,
+  contribute card, stats labels, B4 decode labels, footer
+- Dynamic content translation via MutationObserver with 80 ms debounce
+- WeakMap cache preserves original FR text per DOM node for lossless
+  FR <-> EN round-trips without flicker
+
+Acknowledgements: KDy, Gaet78, Neuro, Alex, Yannickt26, mfo38, old-man for
+ongoing protocol decoding, hardware testing, and community feedback.
