@@ -2,6 +2,21 @@
 
 All notable changes to the Joyonway Frame Analyzer.
 
+## V4.2 (2026-06-01)
+
+### Added
+- EN / FR language switch: floating top-right pill (cyan), `FR | EN` buttons. Default is FR (the analyzer was built in French first). Persistence via localStorage key `joyonway_lang`. Bilingual dictionary covers all static UI strings (cards, footer, stats labels, decode labels) plus dynamic Contribute status messages (sending, success, canceled, etc.) and input placeholders.
+- MutationObserver with 80 ms debounce automatically translates dynamically injected content (rendered tables, alert boxes, evolution messages) when the user has switched to EN.
+- WeakMap cache keeps the original text per DOM node to allow back-and-forth FR <-> EN switching without flicker or double-translation.
+
+### Changed
+- Version pill, footer, and page title bumped to V4.2.
+
+### File
+- `docs/index.html` (38 KB, single standalone file)
+
+---
+
 ## V4.1 (2026-06-01)
 
 ### Added
@@ -14,7 +29,6 @@ All notable changes to the Joyonway Frame Analyzer.
 
 ### Changed
 - Dropzone text updated to reflect multi-format support.
-- Version pill bumped to V4.1.
 
 ### Removed
 - `joyonway_v35_addon.js`, `joyonway_v36_addon.js`, `joyonway_v37_addon.js`, `joyonway_v38_i18n.js`: these addons were designed to patch the V3.2 base. The V4.0 standalone implements equivalent functionality natively, so the addons became dead code.

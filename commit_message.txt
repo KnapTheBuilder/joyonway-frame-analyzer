@@ -1,34 +1,27 @@
-V4.1 - Multi-format upload + opt-in contribute flow for ha-joyonway-multi
-
-This release prepares the multi-model HA integration by enabling community
-contributions through the analyzer itself.
+V4.2 - EN / FR language switch with localStorage persistence
 
 ADDED
-- Multi-format upload: auto-detect binary vs text content. Accepts .bin
-  (raw bytes from nc), .txt / .log / .cap / .hex (xxd output, raw hex,
-  hex with spaces / commas / 0x prefix). Comment lines starting with #
-  are ignored. Heuristic: 512-byte sample, >=85% printable ASCII or
-  whitespace -> text mode, else binary mode.
-- Contribute card: opt-in checkbox (checked by default) sends anonymous
-  JSON payload to ha-joyonway-multi project endpoint. Fields: declared
-  controller model, declared keypad model, capture context (500 chars
-  max). 3-second debounce allows user to uncheck before send.
-- Payload includes: raw hex bytes (truncated to 100 KB hex max),
-  analyzer version, timestamp, user agent (truncated), declared model,
-  declared panel, context, frame count. No IP, no PII. MIT licensed.
-- Webhook URL configurable via CONTRIBUTE_WEBHOOK_URL constant at top
-  of inline JS. Empty value disables the send (UI visible but inactive).
-- Failure-safe: capture is always analyzed locally regardless of send
-  success or failure.
+- Floating top-right pill (cyan, FR | EN) for bilingual UI. Default
+  language is FR (matches the analyzer's primary author language).
+  Selection persists across sessions via localStorage key
+  joyonway_lang.
+- Full bilingual coverage of static UI strings: card titles, dropzone
+  text, contribute card, stats labels, B4 decode labels, footer.
+- Dynamic content translation: Contribute status messages (waiting,
+  sending, success, canceled, disabled, error), input placeholders,
+  alert boxes, evolution messages between first and last B4 broadcast.
+- MutationObserver with 80 ms debounce automatically translates DOM
+  changes injected by analyzer rendering (stat boxes, tables, decode
+  grids) when the user is in EN mode.
+- Per-node WeakMap cache preserves original text on first translation
+  to allow lossless FR <-> EN round-trips without flicker.
 
 CHANGED
-- Dropzone text now lists all accepted formats explicitly.
-- Version pill, footer, and page title bumped to V4.1.
+- Version pill, footer text, and page title bumped to V4.2.
+- All inline strings in render functions remain in FR (the canonical
+  language). The i18n layer translates them at runtime when EN is
+  selected.
 
-REMOVED
-- joyonway_v35_addon.js, v36, v37, v38: these addons patched the older
-  V3.2 base. The V4.0+ standalone implements equivalent functionality
-  natively, so the addons became dead code and were removed.
-
-Acknowledgements: KDy, Gaet78, Neuro, Alex, Yannickt26, mfo38, old-man
-for ongoing protocol decoding, hardware testing, and community feedback.
+Tested: FR <-> EN switching on Chrome, Safari iOS, Firefox. Default
+FR loads correctly on first visit. Switching to EN persists across
+page reload.
