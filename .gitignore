@@ -1,0 +1,22 @@
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor backups
+*.bak
+*.swp
+*~
+
+# Local dev / test
+.vscode/
+.idea/
+node_modules/
+__pycache__/
+*.pyc
+
+# Local captures (private data, not for publication)
+captures/
+*.bin
+*.cap
+test_*.txt
