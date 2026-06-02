@@ -4,6 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Joyonway Frame Analyzer V4.1</title>
+/* V4.2: Language switch */
+#lang-switch {
+  position: fixed; top: 14px; right: 14px; z-index: 9999;
+  display: flex; gap: 0;
+  background: rgba(20, 20, 40, 0.85);
+  border: 1px solid var(--border-cyan);
+  border-radius: 14px; overflow: hidden;
+  font-family: var(--mono); font-size: 11px;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
+  backdrop-filter: blur(6px);
+}
+#lang-switch button {
+  background: transparent; border: none; padding: 6px 12px;
+  color: var(--text-dim); cursor: pointer;
+  font-family: inherit; font-size: inherit; font-weight: 600;
+  letter-spacing: 1px; transition: all 0.15s;
+}
+#lang-switch button:hover { color: var(--text-primary); }
+#lang-switch button.active {
+  background: var(--border-cyan); color: var(--bg-primary);
+}
 <style>
 :root {
   --bg-primary: #0a0a14;
