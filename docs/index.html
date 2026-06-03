@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Joyonway Frame Analyzer V3.2</title>
+<style>
+:root {
+  --bg-primary: #0a0a14;
+  --bg-secondary: #0d0d1f;
+  --bg-card: rgba(20, 20, 40, 0.65);
+  --border-cyan: #00e5ff;
+  --border-magenta: #ff00e5;
+  --text-primary: #e0e8ff;
+  --text-dim: #8090b0;
+  --accent-green: #00ff88;
+  --accent-orange: #ff9500;
+  --accent-red: #ff3366;
+  --accent-yellow: #ffd400;
+  --accent-purple: #a064ff;
+  --mono: 'Courier New', 'Monaco', 'Menlo', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+  color: var(--text-primary);
+  min-height: 100vh;
+  padding: 16px;
+}
+.container { max-width: 1400px; margin: 0 auto; }
+h1 {
+  color: var(--border-magenta);
+  text-align: center;
+  margin-bottom: 8px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-shadow: 0 0 12px rgba(255, 0, 229, 0.5);
+}
+.subtitle {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+.version-pill {
+  display: inline-block;
+  background: rgba(255, 0, 229, 0.15);
+  border: 1px solid var(--border-magenta);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  color: var(--border-magenta);
+  margin-left: 8px;
+  vertical-align: middle;
+}
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-cyan);
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 14px;
+  box-shadow: 0 0 18px rgba(0, 229, 255, 0.12);
+  backdrop-filter: blur(8px);
+}
+.card-title {
+  color: var(--border-cyan);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(0, 229, 255, 0.25);
+  padding-bottom: 6px;
+}
+.format-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.format-pill {
+  cursor: pointer;
+  padding: 6px 12px;
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  border-radius: 16px;
+  background: rgba(0, 229, 255, 0.05);
+  font-size: 12px;
+  color: var(--text-dim);
+  transition: all 0.15s;
+  font-family: var(--mono);
+}
+.format-pill:hover { border-color: var(--border-cyan); color: var(--text-primary); }
+.format-pill.active {
+  background: rgba(255, 0, 229, 0.2);
+  border-color: var(--border-magenta);
+  color: var(--border-magenta);
+  text-shadow: 0 0 6px rgba(255, 0, 229, 0.5);
+}
+.format-pill.special {
+  background: rgba(160, 100, 255, 0.1);
+  border-color: var(--accent-purple);
+  color: var(--accent-purple);
+}
+.format-pill.special.active {
+  background: rgba(160, 100, 255, 0.3);
+  border-color: var(--accent-purple);
+  color: white;
+}
+.upload-zone {
+  display: block;
+  border: 2px dashed var(--border-cyan);
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: rgba(0, 229, 255, 0.03);
+}
+.upload-zone:hover {
+  border-color: var(--border-magenta);
+  background: rgba(255, 0, 229, 0.05);
+}
+.upload-zone input { display: none; }
+.upload-zone .hint { color: var(--text-dim); font-size: 12px; margin-top: 8px; }
+.controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  align-items: center;
+}
+.btn {
+  background: rgba(0, 229, 255, 0.1);
+  color: var(--text-primary);
+  border: 1px solid var(--border-cyan);
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 12px;
+  transition: all 0.15s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.btn:hover { background: rgba(0, 229, 255, 0.22); }
+.btn-primary {
+  background: rgba(255, 0, 229, 0.15);
+  border-color: var(--border-magenta);
+}
+.btn-primary:hover { background: rgba(255, 0, 229, 0.3); }
+.btn-warn {
+  background: rgba(255, 149, 0, 0.15);
+  border-color: var(--accent-orange);
+  color: var(--accent-orange);
+}
+.btn-special {
+  background: rgba(160, 100, 255, 0.15);
+  border-color: var(--accent-purple);
+  color: var(--accent-purple);
+}
+.stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  color: var(--text-dim);
+  font-size: 12px;
+  margin-top: 12px;
+}
+.stat-value { color: var(--accent-green); font-weight: bold; }
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 900px) {
+  .grid { grid-template-columns: 1fr; }
+}
+.frame-list {
+  max-height: 400px;
+  overflow-y: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.25);
+}
+.frame-list::-webkit-scrollbar { width: 8px; }
+.frame-list::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); }
+.frame-list::-webkit-scrollbar-thumb { background: var(--border-cyan); border-radius: 4px; }
+.frame-row {
+  padding: 4px 8px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(0, 229, 255, 0.08);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  transition: background 0.1s;
+}
+.frame-row:hover { background: rgba(0, 229, 255, 0.1); }
+.frame-row.selected {
+  background: rgba(0, 229, 255, 0.2);
+  border-left: 3px solid var(--border-magenta);
+}
+.frame-row.reference {
+  background: rgba(255, 149, 0, 0.18);
+  border-left: 3px solid var(--accent-orange);
+}
+.cmd-badge {
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: bold;
+  min-width: 36px;
+  text-align: center;
+  font-size: 10px;
+  background: rgba(128, 144, 176, 0.15);
+  color: var(--text-dim);
+}
+.cmd-badge.cmd-B4 { background: rgba(0, 255, 136, 0.2); color: var(--accent-green); }
+.cmd-badge.cmd-B5 { background: rgba(255, 149, 0, 0.2); color: var(--accent-orange); }
+.cmd-badge.cmd-A5 { background: rgba(0, 229, 255, 0.2); color: var(--border-cyan); }
+.cmd-badge.cmd-A1 { background: rgba(255, 0, 229, 0.2); color: var(--border-magenta); }
+.cmd-badge.cmd-A4 { background: rgba(255, 212, 0, 0.18); color: var(--accent-yellow); }
+.cmd-badge.cmd-AE { background: rgba(255, 51, 102, 0.18); color: var(--accent-red); }
+.cmd-badge.cmd-AA { background: rgba(160, 100, 255, 0.18); color: var(--accent-purple); }
+.addr-badge {
+  font-size: 9px;
+  color: var(--text-dim);
+  padding: 1px 4px;
+  background: rgba(128, 144, 176, 0.1);
+  border-radius: 2px;
+}
+.frame-hex {
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  font-size: 10px;
+}
+.hex-detail {
+  font-family: var(--mono);
+  font-size: 13px;
+  overflow-x: auto;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 229, 255, 0.15);
+}
+.hex-row { display: flex; flex-wrap: wrap; gap: 2px; }
+.hex-byte {
+  display: inline-block;
+  min-width: 28px;
+  text-align: center;
+  padding: 3px 4px;
+  border-radius: 3px;
+  background: rgba(0, 229, 255, 0.05);
+}
+.hex-byte.diff {
+  background: rgba(255, 51, 102, 0.35);
+  color: var(--accent-red);
+  font-weight: bold;
+  box-shadow: 0 0 6px rgba(255, 51, 102, 0.5);
+}
+.hex-byte.idx {
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 10px;
+}
+.hex-byte.delim {
+  background: rgba(255, 0, 229, 0.15);
+  color: var(--border-magenta);
+}
+.hex-byte.cmd-pos {
+  background: rgba(0, 255, 136, 0.2);
+  color: var(--accent-green);
+  font-weight: bold;
+}
+.diff-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.diff-table th, .diff-table td {
+  padding: 6px 10px;
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 229, 255, 0.15);
+}
+.diff-table th {
+  background: rgba(0, 229, 255, 0.1);
+  color: var(--border-cyan);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 10px;
+}
+.diff-table td.changed {
+  color: var(--accent-red);
+  font-weight: bold;
+}
+.scan-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 12px;
+  margin-top: 10px;
+}
+.scan-table th, .scan-table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 229, 255, 0.15);
+}
+.scan-table th {
+  background: rgba(160, 100, 255, 0.15);
+  color: var(--accent-purple);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 10px;
+}
+.scan-table tr.winner {
+  background: rgba(0, 255, 136, 0.1);
+}
+.scan-table tr.winner td:first-child {
+  color: var(--accent-green);
+  font-weight: bold;
+}
+.filter-input, .config-input {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-cyan);
+  color: var(--text-primary);
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.filter-input:focus, .config-input:focus { outline: none; border-color: var(--border-magenta); }
+.config-input { width: 70px; text-align: center; }
+.config-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.config-row label {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-family: var(--mono);
+  text-transform: uppercase;
+}
+.empty {
+  color: var(--text-dim);
+  text-align: center;
+  padding: 20px;
+  font-style: italic;
+  font-size: 13px;
+}
+details summary {
+  cursor: pointer;
+  color: var(--border-cyan);
+  padding: 6px 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+details summary:hover { color: var(--border-magenta); }
+.legend {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--text-dim);
+  font-family: var(--mono);
+  margin-top: 8px;
+}
+.legend-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+.format-info {
+  background: rgba(0, 229, 255, 0.05);
+  border-left: 3px solid var(--border-cyan);
+  padding: 8px 12px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-dim);
+  font-family: var(--mono);
+}
+.format-info.special {
+  background: rgba(160, 100, 255, 0.05);
+  border-left-color: var(--accent-purple);
+}
+.format-info strong { color: var(--accent-green); }
+.custom-config {
+  display: none;
+  margin-top: 10px;
+  padding: 12px;
+  background: rgba(160, 100, 255, 0.05);
+  border: 1px solid rgba(160, 100, 255, 0.3);
+  border-radius: 6px;
+}
+.custom-config.visible { display: block; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>JOYONWAY FRAME ANALYZER<span class="version-pill">V3.2</span></h1>
+  <div class="subtitle">Multi-model RS485 capture parser — works on P23B32, P69B133, P20B29, and any other Joyonway/Mesda/Balboa variant</div>
+
+  <div class="card">
+    <div class="card-title">1. Controller Format</div>
+    <div class="format-selector" id="formatSelector">
+      <span class="format-pill active" data-fmt="auto">Auto-detect</span>
+      <span class="format-pill" data-fmt="p23b32">P23B32 / Mesda</span>
+      <span class="format-pill" data-fmt="p69b133">P69B133 / Gaet78</span>
+      <span class="format-pill special" data-fmt="scan">Scan all delimiters</span>
+      <span class="format-pill special" data-fmt="custom">Custom...</span>
+    </div>
+    <div class="format-info" id="formatInfo">
+      Auto-detect tests known presets (P23B32 first, then P69B133) and picks the one yielding the most frames.
+    </div>
+
+    <div class="custom-config" id="customConfig">
+      <div class="config-row">
+        <label>Delimiter (hex)</label>
+        <input type="text" class="config-input" id="customDelim" value="1D" maxlength="2">
+        <label>Length byte (hex)</label>
+        <input type="text" class="config-input" id="customLen" value="1A" maxlength="2">
+        <label>CMD offset</label>
+        <input type="number" class="config-input" id="customCmdOffset" value="4" min="0" max="30">
+        <label>Src offset</label>
+        <input type="number" class="config-input" id="customSrcOffset" value="0" min="0" max="30">
+        <button class="btn btn-special" id="applyCustom">Apply</button>
+      </div>
+      <div style="color: var(--text-dim); font-size: 11px; font-family: var(--mono);">
+        Frame structure: [delimiter] [length] [payload of "length" bytes] [delimiter]<br>
+        Inside payload: byte at "Src offset" = source address, byte at "CMD offset" = command
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">2. Capture File</div>
+    <label class="upload-zone" id="uploadZone">
+      <input type="file" id="fileInput" accept=".txt,.hex,.log,.bin,.cap,.dump" />
+      <div><strong>Click to upload</strong> or drop a capture file here</div>
+      <div class="hint">Supported formats: xxd output, raw hex, hex with spaces, hex with commas</div>
+    </label>
+    <div class="controls">
+      <button class="btn" id="clearBtn">Clear</button>
+      <button class="btn" id="exampleBtn">Load P23B32 sample</button>
+      <span style="color: var(--text-dim); font-size: 11px; margin-left: 10px;">
+        Capture command: <code style="color: var(--accent-green);">timeout 30 nc &lt;W610_IP&gt; 8899 | xxd &gt; capture.txt</code>
+      </span>
+    </div>
+    <div class="stats" id="stats">No file loaded</div>
+  </div>
+
+  <div class="card" id="scanCard" style="display: none;">
+    <div class="card-title">Delimiter Scan Results</div>
+    <div id="scanResults"></div>
+  </div>
+
+  <div class="grid" id="analysisGrid">
+    <div class="card">
+      <div class="card-title">3. Frames (click to select)</div>
+      <div class="controls">
+        <input type="text" id="filterInput" class="filter-input" placeholder="Filter by CMD (e.g. B4) or hex" style="flex: 1; min-width: 200px;" />
+        <button class="btn btn-warn" id="clearRefBtn">Clear ref</button>
+      </div>
+      <div class="frame-list" id="frameList">
+        <div class="empty">No frames loaded</div>
+      </div>
+      <div class="legend">
+        <span><span class="legend-swatch" style="background: rgba(0, 255, 136, 0.4);"></span>B4 status</span>
+        <span><span class="legend-swatch" style="background: rgba(255, 149, 0, 0.4);"></span>B5 filtration</span>
+        <span><span class="legend-swatch" style="background: rgba(0, 229, 255, 0.4);"></span>A5 module poll</span>
+        <span><span class="legend-swatch" style="background: rgba(255, 0, 229, 0.4);"></span>A1 setpoint/pump</span>
+        <span><span class="legend-swatch" style="background: rgba(255, 212, 0, 0.4);"></span>A4 filtration</span>
+        <span><span class="legend-swatch" style="background: rgba(255, 51, 102, 0.4);"></span>AE light</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">4. Selected Frame</div>
+      <div id="frameDetail">
+        <div class="empty">Select a frame from the left list</div>
+      </div>
+      <div class="controls" id="detailControls" style="display: none;">
+        <button class="btn btn-primary" id="markRefBtn">Mark as reference</button>
+        <button class="btn" id="copyHexBtn">Copy hex</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="diffCard" style="display: none;">
+    <div class="card-title">5. Diff vs Reference</div>
+    <div id="diffContent"></div>
+  </div>
+
+  <div class="card" id="byteStatsCard">
+    <div class="card-title">6. Byte Position Statistics (variations per Src + CMD)</div>
+    <div id="byteStats">
+      <div class="empty">Load a capture to see byte position stats</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Workflow</div>
+    <div style="color: var(--text-dim); font-size: 13px; line-height: 1.6;">
+      <ol style="padding-left: 20px;">
+        <li>If you know your controller (P23B32, P69B133...), select it. Otherwise use <strong style="color: var(--accent-purple);">Scan all delimiters</strong> first to identify it.</li>
+        <li>Disable any active HA Joyonway integration (only one TCP client at a time on the W610)</li>
+        <li>Capture RS485 traffic: <code style="color: var(--accent-green);">timeout 60 nc &lt;W610_IP&gt; 8899 | xxd &gt; capture.txt</code> while changing spa state (setpoint, pumps, filtration)</li>
+        <li>Upload the capture. The tool extracts frames using your selected format.</li>
+        <li>Mark a frame as <strong style="color: var(--accent-orange);">reference</strong>, then click another frame in a different state — bytes that differ are highlighted in <strong style="color: var(--accent-red);">red</strong></li>
+        <li>Byte Position Statistics shows which positions vary across all frames of the same Src/CMD pair</li>
+      </ol>
+      <div style="margin-top: 10px; color: var(--text-dim); font-size: 12px;">
+        Adding new presets: edit the FORMATS object in the source (or open an issue at
+        <a href="https://github.com/KnapTheBuilder/ha-joyonway-p23b32" style="color: var(--border-cyan);">the repo</a>
+        with your model and frame structure).
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const FORMATS = {
+  p23b32: {
+    name: 'P23B32 / Mesda',
+    delimiter: 0x1D,
+    delimiterStart: 0x1A,
+    delimiterEnd: 0x1D,
+    useUnescape: true,
+    maxFrameLen: 256,
+    srcOffset: 1,
+    cmdOffset: 4,
+    info: 'P23B32 controller. Frames [1A][dst][src][len][...][CRC][1D] with pseudo-escape (1B XX). Per KDy decoding (HA forum post 90). Validated against c0mpleX broadcast frames.',
+  },
+  p69b133: {
+    name: 'P69B133 / Gaet78',
+    delimiter: 0x7E,
+    delimiterStart: 0x7E,
+    delimiterEnd: 0x7E,
+    useUnescape: false,
+    maxFrameLen: 64,
+    srcOffset: 2,
+    cmdOffset: 4,
+    info: 'P69B133 controller. Frames [7E][len][F9 BF cmd ...][CRC][7E]. Per Gaet78 reference integration.',
+  },
+};
+
+const CANDIDATE_DELIMITERS = [0x1D, 0x7E, 0x5A, 0xAA, 0x55, 0xF0, 0x8D, 0xA5, 0xCC];
+const CANDIDATE_LENGTHS = [0x1A, 0x18, 0x1C, 0x20, 0x10, 0x0C];
+
+const state = {
+  bytes: [],
+  frames: [],
+  selectedIdx: -1,
+  refIdx: -1,
+  filter: '',
+  formatKey: 'auto',
+  activeFormat: null,
+  customFormat: {
+    name: 'Custom',
+    delimiter: 0x1D,
+    expectedLength: 0x1A,
+    cmdOffset: 4,
+    srcOffset: 0,
+    info: 'Custom format defined by user.',
+  },
+};
+
+const SAMPLE_P23B32 = `
+00000000: 1aff 013c d2b4 ff08 025b 0414 00ff 2000  ...<.....[.... .
+00000010: 56c0 020b 1b15 0d00 0e00 0f1b 1500 20c5  V............. .
+00000020: 0000 0017 0006 0000 0014 4f00 0000 0000  ..........O.....
+00000030: 0000 0000 0000 001b 1105 1209 112f 0100  ............./..
+00000040: 9ef0 8eaf 1d1a 2001 0cc3 a500 0000 0000  ...... .........
+00000050: 0000 0011 2a0c e11d 1a01 2008 3caa 1000  ....*..... .<...
+00000060: 006b 73e4 b91d 1a21 010c c3a5 0000 0000  .ks....!........
+00000070: 0000 0077 800c 131d 1a22 010c c3a5 0000  ...w....."......
+00000080: 0000 0000 006a 63cc 011d 1a23 010c c3a5  .....jc....#....
+00000090: 0000 0000 0000 000c c9cc f31d 1a30 010c  .............0..
+000000a0: c3a5 0000 0000 0000 00cc 3149 f91d 1aff  ..........1I....
+000000b0: 013c d2b4 ff08 025b 0414 00ff 2000 64c0  .<.....[.... .d.
+000000c0: 020b 1b15 0d00 0e00 0f1b 1500 20c5 0000  ............ ...
+000000d0: 0017 0006 0000 0014 4f00 0000 0000 0000  ........O.......
+000000e0: 0000 0000 001b 1105 1209 112f 0100 a1b2  ............/...
+000000f0: c3d4 1d                                  ...
+`;
+
+function parseHexFromText(text) {
+  const bytes = [];
+  const lines = text.split(/\r?\n/);
+  for (const line of lines) {
+    let cleaned = line.replace(/^[0-9a-f]+:/i, '');
+    cleaned = cleaned.replace(/\s{2,}.*$/, '');
+    cleaned = cleaned.replace(/0x/gi, '');
+    cleaned = cleaned.replace(/[,;|]/g, ' ');
+    const matches = cleaned.match(/[0-9a-f]{2}/gi);
+    if (matches) {
+      for (const m of matches) {
+        bytes.push(parseInt(m, 16));
+      }
+    }
+  }
+  return bytes;
+}
+
+function pseudoUnescape(data) {
+  const out = [];
+  let i = 0;
+  while (i < data.length) {
+    if (i + 1 < data.length && data[i] === 0x1B) {
+      const nxt = data[i + 1];
+      if (nxt === 0x11) { out.push(0x1A); i += 2; continue; }
+      if (nxt === 0x13) { out.push(0x1C); i += 2; continue; }
+      if (nxt === 0x14) { out.push(0x1D); i += 2; continue; }
+      if (nxt === 0x15) { out.push(0x1E); i += 2; continue; }
+      if (nxt === 0x0B) { out.push(0x1B); i += 2; continue; }
+    }
+    out.push(data[i]);
+    i++;
+  }
+  return out;
+}
+
+function extractFramesWithFormat(bytes, fmt) {
+  const frames = [];
+  const delimStart = fmt.delimiterStart !== undefined ? fmt.delimiterStart : fmt.delimiter;
+  const delimEnd = fmt.delimiterEnd !== undefined ? fmt.delimiterEnd : fmt.delimiter;
+  const maxLen = fmt.maxFrameLen || 128;
+  let i = 0;
+  while (i < bytes.length - 4) {
+    if (bytes[i] === delimStart) {
+      let endIdx = -1;
+      for (let j = i + 4; j < bytes.length && j - i < maxLen; j++) {
+        if (bytes[j] === delimEnd) { endIdx = j; break; }
+      }
+      if (endIdx > 0 && endIdx - i >= 6) {
+        const frameRaw = bytes.slice(i, endIdx + 1);
+        let body = frameRaw.slice(1, frameRaw.length - 1);
+        if (fmt.useUnescape) body = pseudoUnescape(body);
+        const dst = body.length > 0 ? body[0] : 0;
+        const src = body.length > (fmt.srcOffset || 0) ? body[fmt.srcOffset || 0] : 0;
+        const cmd = body.length > fmt.cmdOffset ? body[fmt.cmdOffset] : 0;
+        frames.push({
+          offset: i,
+          bytes: frameRaw,
+          payload: body,
+          src: src,
+          cmd: cmd,
+          dst: dst,
+          length: frameRaw.length,
+          isBroadcast: dst === 0xFF || src === 0xFF || src === 0xF9,
+        });
+        i = endIdx + 1;
+        continue;
+      }
+    }
+    i++;
+  }
+  return frames;
+}
+
+function autoDetect(bytes) {
+  const candidates = [];
+  for (const [key, fmt] of Object.entries(FORMATS)) {
+    const frames = extractFramesWithFormat(bytes, fmt);
+    candidates.push({ key, fmt, frames, count: frames.length });
+  }
+  candidates.sort((a, b) => b.count - a.count);
+  return candidates[0];
+}
+
+function scanAllDelimiters(bytes) {
+  const results = [];
+  for (const delim of CANDIDATE_DELIMITERS) {
+    let bestLen = null;
+    let bestCount = 0;
+    let bestFrames = [];
+    for (const len of CANDIDATE_LENGTHS) {
+      const fmt = { delimiter: delim, cmdOffset: 4, srcOffset: 0 };
+      const frames = extractFramesWithFormat(bytes, fmt).filter(f => f.length === len);
+      if (frames.length > bestCount) {
+        bestCount = frames.length;
+        bestLen = len;
+        bestFrames = frames;
+      }
+    }
+    const fmt = { delimiter: delim, cmdOffset: 4, srcOffset: 0 };
+    const allFrames = extractFramesWithFormat(bytes, fmt);
+    const cmdSet = new Set(allFrames.map(f => f.cmd));
+    results.push({
+      delimiter: delim,
+      totalFrames: allFrames.length,
+      bestLen: bestLen,
+      bestLenCount: bestCount,
+      distinctCmds: cmdSet.size,
+      topCmds: [...cmdSet].slice(0, 5),
+    });
+  }
+  results.sort((a, b) => b.bestLenCount - a.bestLenCount);
+  return results;
+}
+
+function bytesToHex(bytes, sep = ' ') {
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join(sep);
+}
+
+function hex2(n) {
+  return n.toString(16).padStart(2, '0').toUpperCase();
+}
+
+function renderScanResults() {
+  const card = document.getElementById('scanCard');
+  const container = document.getElementById('scanResults');
+  if (state.formatKey !== 'scan' || state.bytes.length === 0) {
+    card.style.display = 'none';
+    return;
+  }
+  const results = scanAllDelimiters(state.bytes);
+  card.style.display = 'block';
+
+  let html = `<div style="color: var(--text-dim); font-size: 12px; margin-bottom: 10px;">
+    Tested ${CANDIDATE_DELIMITERS.length} delimiters with ${CANDIDATE_LENGTHS.length} candidate lengths each. The winner (most consistent frames) is highlighted.
+  </div>`;
+  html += '<table class="scan-table"><thead><tr><th>Delimiter</th><th>Best length</th><th>Frames @ best length</th><th>Total frames (any length)</th><th>Distinct CMDs</th><th>Top CMDs</th><th>Action</th></tr></thead><tbody>';
+
+  let firstWinner = true;
+  for (const r of results) {
+    const isWinner = firstWinner && r.bestLenCount >= 10;
+    if (isWinner) firstWinner = false;
+    const topCmds = r.topCmds.map(c => hex2(c)).join(', ') || '-';
+    html += `<tr class="${isWinner ? 'winner' : ''}">
+      <td>0x${hex2(r.delimiter)} (${String.fromCharCode(r.delimiter >= 32 && r.delimiter < 127 ? r.delimiter : 46)})</td>
+      <td>${r.bestLen !== null ? '0x' + hex2(r.bestLen) + ' (' + r.bestLen + ')' : '-'}</td>
+      <td>${r.bestLenCount}</td>
+      <td>${r.totalFrames}</td>
+      <td>${r.distinctCmds}</td>
+      <td>${topCmds}</td>
+      <td><button class="btn btn-special" onclick="useScanResult(0x${r.delimiter.toString(16)}, 0x${(r.bestLen || 0x1A).toString(16)})">Use this</button></td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+window.useScanResult = function(delim, len) {
+  state.customFormat = {
+    name: `Custom (delim 0x${hex2(delim)})`,
+    delimiter: delim,
+    expectedLength: len,
+    cmdOffset: 4,
+    srcOffset: 0,
+    info: `Custom format from scan: delimiter 0x${hex2(delim)}, length 0x${hex2(len)}, CMD at byte 4, Src at byte 0.`,
+  };
+  document.getElementById('customDelim').value = hex2(delim);
+  document.getElementById('customLen').value = hex2(len);
+  document.getElementById('customCmdOffset').value = 4;
+  document.getElementById('customSrcOffset').value = 0;
+  document.querySelectorAll('#formatSelector .format-pill').forEach(p => p.classList.remove('active'));
+  document.querySelector('[data-fmt="custom"]').classList.add('active');
+  document.getElementById('customConfig').classList.add('visible');
+  state.formatKey = 'custom';
+  processCapture();
+};
+
+function renderStats() {
+  const total = state.frames.length;
+  const statsEl = document.getElementById('stats');
+  if (state.bytes.length === 0) {
+    statsEl.innerHTML = 'No file loaded';
+    return;
+  }
+  if (state.formatKey === 'scan') {
+    statsEl.innerHTML = `Bytes: <span class="stat-value">${state.bytes.length}</span> | Scan mode — see results below`;
+    return;
+  }
+  if (total === 0) {
+    statsEl.innerHTML = `<span style="color: var(--accent-red);">${state.bytes.length} bytes parsed but 0 frames detected with current format. Try Scan all delimiters.</span>`;
+    return;
+  }
+  const fmt = state.activeFormat;
+  const broadcasts = state.frames.filter(f => f.isBroadcast).length;
+  const cmdCount = {};
+  for (const f of state.frames) {
+    const c = hex2(f.cmd);
+    cmdCount[c] = (cmdCount[c] || 0) + 1;
+  }
+  const cmdSummary = Object.entries(cmdCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([c, n]) => `<span>${c}: <span class="stat-value">${n}</span></span>`)
+    .join(' ');
+  statsEl.innerHTML = `
+    Bytes: <span class="stat-value">${state.bytes.length}</span> |
+    Format: <span class="stat-value">${fmt.name}</span> (delim 0x${hex2(fmt.delimiter)}) |
+    Frames: <span class="stat-value">${total}</span> |
+    Broadcasts: <span class="stat-value">${broadcasts}</span> |
+    Top CMD: ${cmdSummary}
+  `;
+}
+
+function renderFrameList() {
+  const list = document.getElementById('frameList');
+  const filter = state.filter.toLowerCase().trim();
+  let html = '';
+  let visible = 0;
+  const limit = 500;
+  for (let i = 0; i < state.frames.length && visible < limit; i++) {
+    const f = state.frames[i];
+    const cmdHex = hex2(f.cmd);
+    const hex = bytesToHex(f.bytes.slice(0, 14));
+    if (filter && !cmdHex.toLowerCase().includes(filter) && !hex.toLowerCase().includes(filter) && !hex2(f.src).toLowerCase().includes(filter)) {
+      continue;
+    }
+    visible++;
+    const classes = ['frame-row'];
+    if (i === state.selectedIdx) classes.push('selected');
+    if (i === state.refIdx) classes.push('reference');
+    html += `
+      <div class="${classes.join(' ')}" data-idx="${i}">
+        <span class="cmd-badge cmd-${cmdHex}">${cmdHex}</span>
+        <span class="addr-badge">src ${hex2(f.src)}</span>
+        <span class="frame-hex">${hex}${f.bytes.length > 14 ? '...' : ''}</span>
+      </div>
+    `;
+  }
+  if (!html) {
+    html = '<div class="empty">No frames match the filter</div>';
+  } else if (state.frames.length > limit) {
+    html += `<div class="empty">Showing first ${limit} of ${state.frames.length}. Use filter to narrow.</div>`;
+  }
+  list.innerHTML = html;
+  list.querySelectorAll('.frame-row').forEach(row => {
+    row.addEventListener('click', () => {
+      state.selectedIdx = parseInt(row.dataset.idx);
+      renderFrameList();
+      renderFrameDetail();
+      renderDiff();
+    });
+  });
+}
+
+function renderFrameDetail() {
+  const detail = document.getElementById('frameDetail');
+  const ctrls = document.getElementById('detailControls');
+  if (state.selectedIdx < 0 || state.selectedIdx >= state.frames.length) {
+    detail.innerHTML = '<div class="empty">Select a frame from the left list</div>';
+    ctrls.style.display = 'none';
+    return;
+  }
+  const fmt = state.activeFormat;
+  const f = state.frames[state.selectedIdx];
+  const ref = state.refIdx >= 0 ? state.frames[state.refIdx] : null;
+  const sameGroup = ref && ref.cmd === f.cmd && ref.src === f.src;
+
+  let idxRow = '<div class="hex-row">';
+  let byteRow = '<div class="hex-row">';
+  for (let j = 0; j < f.bytes.length; j++) {
+    idxRow += `<span class="hex-byte idx">${j.toString().padStart(2, '0')}</span>`;
+    let cls = 'hex-byte';
+    if (j === 0 || j === f.bytes.length - 1) cls += ' delim';
+    else if (j === 2 + fmt.cmdOffset) cls += ' cmd-pos';
+    else if (sameGroup && j < ref.bytes.length && ref.bytes[j] !== f.bytes[j]) cls += ' diff';
+    byteRow += `<span class="${cls}">${f.bytes[j].toString(16).padStart(2, '0')}</span>`;
+  }
+  idxRow += '</div>';
+  byteRow += '</div>';
+
+  detail.innerHTML = `
+    <div style="color: var(--text-dim); font-size: 11px; margin-bottom: 8px; font-family: var(--mono);">
+      Frame #${state.selectedIdx} | offset: ${f.offset} | length byte: 0x${hex2(f.length)} (${f.length}) | total: ${f.bytes.length} bytes
+      <br>
+      Src: 0x${hex2(f.src)} ${f.isBroadcast ? '(broadcast)' : '(module)'} | CMD: 0x${hex2(f.cmd)}
+      ${ref && !sameGroup ? `<br><span style="color: var(--accent-yellow);">Reference has different Src/CMD, diff hidden</span>` : ''}
+    </div>
+    <div class="hex-detail">
+      ${idxRow}
+      ${byteRow}
+    </div>
+  `;
+  ctrls.style.display = 'flex';
+}
+
+function renderDiff() {
+  const diffCard = document.getElementById('diffCard');
+  const content = document.getElementById('diffContent');
+  if (state.refIdx < 0 || state.selectedIdx < 0 || state.refIdx === state.selectedIdx) {
+    diffCard.style.display = 'none';
+    return;
+  }
+  const ref = state.frames[state.refIdx];
+  const sel = state.frames[state.selectedIdx];
+
+  if (ref.cmd !== sel.cmd || ref.src !== sel.src) {
+    diffCard.style.display = 'block';
+    content.innerHTML = `<div class="empty">Cannot diff: ref has Src ${hex2(ref.src)}/CMD ${hex2(ref.cmd)}, selected has Src ${hex2(sel.src)}/CMD ${hex2(sel.cmd)}</div>`;
+    return;
+  }
+
+  let html = `<div style="margin-bottom: 10px; color: var(--text-dim); font-size: 12px; font-family: var(--mono);">
+    REF: Frame #${state.refIdx} | SEL: Frame #${state.selectedIdx} | Src: 0x${hex2(ref.src)} | CMD: 0x${hex2(ref.cmd)}
+  </div>`;
+  html += '<table class="diff-table"><thead><tr><th>Byte idx (full)</th><th>Idx (payload)</th><th>REF</th><th>SEL</th><th>Delta dec</th><th>Delta hex</th></tr></thead><tbody>';
+
+  const minLen = Math.min(ref.bytes.length, sel.bytes.length);
+  let diffCount = 0;
+  for (let j = 0; j < minLen; j++) {
+    if (ref.bytes[j] !== sel.bytes[j]) {
+      diffCount++;
+      const delta = sel.bytes[j] - ref.bytes[j];
+      const deltaHex = (delta >= 0 ? '+' : '-') + '0x' + Math.abs(delta).toString(16);
+      const payloadIdx = j - 2;
+      html += `<tr>
+        <td>${j} (0x${j.toString(16).padStart(2, '0')})</td>
+        <td>${payloadIdx >= 0 && j < minLen - 1 ? payloadIdx : '-'}</td>
+        <td>0x${ref.bytes[j].toString(16).padStart(2, '0')} (${ref.bytes[j]})</td>
+        <td class="changed">0x${sel.bytes[j].toString(16).padStart(2, '0')} (${sel.bytes[j]})</td>
+        <td class="changed">${delta > 0 ? '+' : ''}${delta}</td>
+        <td>${deltaHex}</td>
+      </tr>`;
+    }
+  }
+  if (diffCount === 0) {
+    html += '<tr><td colspan="6" class="empty">Frames are byte-identical</td></tr>';
+  }
+  html += '</tbody></table>';
+  html += `<div style="margin-top: 10px; color: var(--text-dim); font-size: 11px; font-family: var(--mono);">
+    ${diffCount} byte(s) differ out of ${minLen}. Payload index = full_idx - 2 (skip delim + length).
+  </div>`;
+  diffCard.style.display = 'block';
+  content.innerHTML = html;
+}
+
+function renderByteStats() {
+  const container = document.getElementById('byteStats');
+  if (state.frames.length === 0) {
+    container.innerHTML = '<div class="empty">Load a capture to see byte position stats</div>';
+    return;
+  }
+  const groups = {};
+  for (const f of state.frames) {
+    const key = `${hex2(f.src)}_${hex2(f.cmd)}`;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(f);
+  }
+  let html = '';
+  for (const [key, frames] of Object.entries(groups).sort()) {
+    if (frames.length < 2) continue;
+    const [src, cmd] = key.split('_');
+    html += `<details><summary>Src 0x${src} | CMD 0x${cmd} (${frames.length} frames)</summary>`;
+    html += '<table class="diff-table"><thead><tr><th>Byte full idx</th><th>Payload idx</th><th>Min</th><th>Max</th><th>Distinct</th><th>Sample values</th></tr></thead><tbody>';
+    const maxLen = Math.max(...frames.map(f => f.bytes.length));
+    let varyingCount = 0;
+    for (let j = 0; j < maxLen; j++) {
+      const values = new Set();
+      let min = 255, max = 0;
+      for (const f of frames) {
+        if (j < f.bytes.length) {
+          values.add(f.bytes[j]);
+          if (f.bytes[j] < min) min = f.bytes[j];
+          if (f.bytes[j] > max) max = f.bytes[j];
+        }
+      }
+      if (values.size > 1) {
+        varyingCount++;
+        const sample = Array.from(values).slice(0, 10).map(v => v.toString(16).padStart(2, '0')).join(', ');
+        const payloadIdx = j - 2;
+        html += `<tr>
+          <td class="changed">${j} (0x${j.toString(16).padStart(2, '0')})</td>
+          <td>${payloadIdx >= 0 && j < maxLen - 1 ? payloadIdx : '-'}</td>
+          <td>0x${min.toString(16).padStart(2, '0')} (${min})</td>
+          <td>0x${max.toString(16).padStart(2, '0')} (${max})</td>
+          <td>${values.size}</td>
+          <td>${sample}${values.size > 10 ? '...' : ''}</td>
+        </tr>`;
+      }
+    }
+    if (varyingCount === 0) {
+      html += '<tr><td colspan="6" class="empty">All frames identical (no variation)</td></tr>';
+    }
+    html += '</tbody></table></details>';
+  }
+  if (!html) {
+    html = '<div class="empty">Not enough frames per group for stats</div>';
+  }
+  container.innerHTML = html;
+}
+
+function processCapture() {
+  const grid = document.getElementById('analysisGrid');
+  const byteStatsCard = document.getElementById('byteStatsCard');
+
+  if (state.formatKey === 'scan') {
+    grid.style.display = 'none';
+    byteStatsCard.style.display = 'none';
+    document.getElementById('diffCard').style.display = 'none';
+    state.frames = [];
+    state.activeFormat = null;
+    renderStats();
+    renderScanResults();
+    return;
+  }
+
+  grid.style.display = 'grid';
+  byteStatsCard.style.display = 'block';
+  document.getElementById('scanCard').style.display = 'none';
+
+  if (state.bytes.length === 0) {
+    state.frames = [];
+    state.activeFormat = null;
+    renderAll();
+    return;
+  }
+
+  if (state.formatKey === 'auto') {
+    const result = autoDetect(state.bytes);
+    state.frames = result.frames;
+    state.activeFormat = result.fmt;
+    document.getElementById('formatInfo').innerHTML =
+      `<strong>Auto-detected:</strong> ${result.fmt.name} (delimiter 0x${hex2(result.fmt.delimiter)}) — ${result.count} frames found.`;
+  } else if (state.formatKey === 'custom') {
+    state.activeFormat = state.customFormat;
+    state.frames = extractFramesWithFormat(state.bytes, state.customFormat);
+    document.getElementById('formatInfo').textContent = state.customFormat.info;
+  } else {
+    const fmt = FORMATS[state.formatKey];
+    state.activeFormat = fmt;
+    state.frames = extractFramesWithFormat(state.bytes, fmt);
+    document.getElementById('formatInfo').textContent = fmt.info;
+  }
+  state.selectedIdx = -1;
+  state.refIdx = -1;
+  renderAll();
+}
+
+function loadCapture(text) {
+  state.bytes = parseHexFromText(text);
+  if (state.bytes.length === 0) {
+    alert('No hex bytes detected in the file. Check the format.');
+    return;
+  }
+  processCapture();
+}
+
+function renderAll() {
+  renderStats();
+  renderFrameList();
+  renderFrameDetail();
+  renderDiff();
+  renderByteStats();
+  renderScanResults();
+}
+
+document.getElementById('fileInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => loadCapture(ev.target.result);
+  reader.onerror = () => alert('Error reading file');
+  reader.readAsText(file);
+});
+
+const uploadZone = document.getElementById('uploadZone');
+uploadZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  uploadZone.style.borderColor = 'var(--border-magenta)';
+});
+uploadZone.addEventListener('dragleave', () => {
+  uploadZone.style.borderColor = 'var(--border-cyan)';
+});
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.style.borderColor = 'var(--border-cyan)';
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => loadCapture(ev.target.result);
+  reader.readAsText(file);
+});
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  state.bytes = [];
+  state.frames = [];
+  state.selectedIdx = -1;
+  state.refIdx = -1;
+  document.getElementById('fileInput').value = '';
+  document.getElementById('filterInput').value = '';
+  state.filter = '';
+  renderAll();
+});
+
+document.getElementById('exampleBtn').addEventListener('click', () => {
+  loadCapture(SAMPLE_P23B32);
+});
+
+document.getElementById('filterInput').addEventListener('input', e => {
+  state.filter = e.target.value;
+  renderFrameList();
+});
+
+document.getElementById('clearRefBtn').addEventListener('click', () => {
+  state.refIdx = -1;
+  renderAll();
+});
+
+document.getElementById('markRefBtn').addEventListener('click', () => {
+  state.refIdx = state.selectedIdx;
+  renderAll();
+});
+
+document.getElementById('copyHexBtn').addEventListener('click', () => {
+  if (state.selectedIdx < 0) return;
+  const hex = bytesToHex(state.frames[state.selectedIdx].bytes);
+  navigator.clipboard.writeText(hex).then(() => {
+    const btn = document.getElementById('copyHexBtn');
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  });
+});
+
+document.querySelectorAll('#formatSelector .format-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('#formatSelector .format-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    state.formatKey = pill.dataset.fmt;
+    const cfg = document.getElementById('customConfig');
+    cfg.classList.toggle('visible', pill.dataset.fmt === 'custom');
+    if (pill.dataset.fmt === 'auto') {
+      document.getElementById('formatInfo').textContent = 'Auto-detect tests known presets (P23B32 first, then P69B133) and picks the one yielding the most frames.';
+    } else if (pill.dataset.fmt === 'scan') {
+      document.getElementById('formatInfo').innerHTML = '<strong style="color: var(--accent-purple);">Scan mode:</strong> tests all candidate delimiters (1D, 7E, 5A, AA, 55, F0, 8D, A5, CC) with multiple lengths and shows you which combination produces consistent frames. Use this when your controller model is unknown.';
+    } else if (pill.dataset.fmt === 'custom') {
+      document.getElementById('formatInfo').textContent = 'Custom: define your own delimiter and offsets manually.';
+    } else {
+      document.getElementById('formatInfo').textContent = FORMATS[pill.dataset.fmt].info;
+    }
+    processCapture();
+  });
+});
+
+document.getElementById('applyCustom').addEventListener('click', () => {
+  const delim = parseInt(document.getElementById('customDelim').value, 16);
+  const len = parseInt(document.getElementById('customLen').value, 16);
+  const cmdOff = parseInt(document.getElementById('customCmdOffset').value, 10);
+  const srcOff = parseInt(document.getElementById('customSrcOffset').value, 10);
+  if (isNaN(delim) || isNaN(len) || isNaN(cmdOff) || isNaN(srcOff)) {
+    alert('Invalid values. Use hex for delimiter/length (e.g. 1D, 1A), decimal for offsets.');
+    return;
+  }
+  state.customFormat = {
+    name: `Custom (delim 0x${hex2(delim)})`,
+    delimiter: delim,
+    expectedLength: len,
+    cmdOffset: cmdOff,
+    srcOffset: srcOff,
+    info: `Custom format: delimiter 0x${hex2(delim)}, length 0x${hex2(len)}, CMD at byte ${cmdOff}, Src at byte ${srcOff}.`,
+  };
+  processCapture();
+});
+
+renderAll();
+</script>
+</body>
+</html>
