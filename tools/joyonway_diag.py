@@ -104,20 +104,40 @@ def verdict(data):
     print(f"  Delimiteurs 0x7E       : {n_7e}   (P69B133 type Balboa)")
     print(f"  Debuts 0x1A / fins 0x1D: {n_1a} / {n_1d}   (P23B32 V2)")
     print(f"  Motif 03 00 A0         : {n_motif}   (flux non-Joyonway / PAC)")
+
+    # Densite des delimiteurs. Un VRAI protocole a une trame tous les ~10-50 octets,
+    # soit 2 a 10% de delimiteurs. Du bruit desynchronise contient des 0x7E/0x1A par
+    # hasard a ~0.4% (1/256). Un compte brut eleve sur un gros fichier est donc
+    # trompeur : c'est la DENSITE qui distingue une vraie trame du bruit.
+    dens_7e = 100.0 * n_7e / n
+    dens_1a = 100.0 * n_1a / n
+    HASARD = 100.0 / 256          # 0.39 %
+    SEUIL = 1.5                   # % mini de delimiteurs pour parler de trames reelles
+    print(f"  Densite 0x7E           : {dens_7e:.2f} %  (hasard ~{HASARD:.2f} %, trame reelle > {SEUIL} %)")
+    print(f"  Densite 0x1A           : {dens_1a:.2f} %")
     print("-" * 56)
 
-    # Decision
-    if n_1a > 20 and n_1d > 20:
+    # Decision basee sur la DENSITE, pas le compte brut.
+    if dens_1a > SEUIL and n_1d > 20:
         print("  PROTOCOLE DETECTE : Joyonway P23B32 V2 (0x1A...0x1D).")
         print("  -> Capture exploitable. Depose-la dans l'analyzer.")
         print("  -> Baud attendu : 38400.")
         return
 
-    if n_7e > 20:
+    if dens_7e > SEUIL:
         print("  PROTOCOLE DETECTE : type Balboa / P69B133 (0x7E).")
         print("  -> Capture exploitable cote profil Balboa.")
         print("  -> Baud attendu : 115200. Integration de reference : Gaet78.")
         return
+
+    # Cas piege : des 0x7E presents mais en densite trop faible = FAUX POSITIF.
+    if n_7e > 20 and dens_7e <= SEUIL:
+        print("  ATTENTION : des 0x7E sont presents mais TROP DISPERSES.")
+        print(f"  Densite {dens_7e:.2f} % proche du hasard ({HASARD:.2f} %), pas de vraies trames.")
+        print("  Ce ne sont pas des delimiteurs Balboa, juste du bruit desynchronise.")
+        print("  -> Ce baud n'est PAS le bon malgre l'apparence. Continue de chercher,")
+        print("     ou le bus est muet (voir causes ci-dessous).")
+        print("")
 
     # Pas de protocole valide
     print("  AUCUNE TRAME JOYONWAY VALIDE.")
@@ -136,6 +156,14 @@ def verdict(data):
     print("     -> Debranche la PAC, garde le pont seul, recapture.")
     print("     -> Si le motif disparait, c'etait la PAC.")
     print("")
+    print("  3) BUS MUET : le pont n'est pas sur le bon segment RS485.")
+    print("     -> Sur certains modeles le bus ne parle que pendant le dialogue")
+    print("        ecran <-> carte de puissance. Le pont doit etre sur le MEME")
+    print("        segment que l'ecran (ex: ecran + pont sur le meme connecteur")
+    print("        via splitter), pas seul sur un port separe.")
+    print("     -> Verifier aussi : 485 selector switch sur OFF pour ecouter")
+    print("        passivement sans piloter la direction du bus.")
+    print("")
     print("  Inutile de deposer cette capture dans l'analyzer en l'etat :")
     print("  elle ne contient aucune trame spa decodable.")
 
@@ -151,3 +179,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
